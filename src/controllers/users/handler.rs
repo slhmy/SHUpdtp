@@ -16,16 +16,21 @@ pub async fn create(
     body: web::Json<RegisterBody>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    user::create(
+    let res = web::block(move || user::create(
         body.account.clone(),
         body.password.clone(),
         body.mobile.clone(),
         body.role.clone(),
         pool
-    ).map(|res| HttpResponse::Ok().json(&res))
+    )).await.map_err(|e| {
+        eprintln!("{}", e);
+        ServiceError::InternalServerError
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
 }
 
-#[get("{id}")]
+#[get("/{id}")]
 pub async fn get(
     web::Path(id): web::Path<i32>,
     pool: web::Data<Pool>,
@@ -33,8 +38,7 @@ pub async fn get(
     let res = web::block(move || user::get(
         id,
         pool
-    ))
-    .await.map_err(|e| {
+    )).await.map_err(|e| {
         eprintln!("{}", e);
         ServiceError::InternalServerError
     })?;

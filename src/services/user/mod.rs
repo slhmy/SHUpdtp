@@ -20,13 +20,13 @@ pub fn create(
         return Err(ServiceError::BadRequest(hint));
     }
 
-    let conn = &db_connection(&pool)?;
-
     let (salt, hash) = if password.is_none() { (None, None) } else {
         let salt = make_salt();
         let hash = make_hash(&password.unwrap(), &salt).to_vec();
         (Some(salt), Some(hash))
     };
+
+    let conn = &db_connection(&pool)?;
 
     use crate::schema::users::dsl::users;
     diesel::insert_into(users)
