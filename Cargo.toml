@@ -1,5 +1,5 @@
 [package]
-name = "SHUpdtp"
+name = "shu_pdtp"
 version = "0.1.0"
 authors = ["slhmy"]
 edition = "2018"
@@ -7,3 +7,31 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# Actor model
+actix = "0.10.0"
+
+# Web framework
+actix-web = "3"
+# Middleware
+actix-identity = "0.3"
+actix-cors = "0.5"
+
+# ORM and Query Builder
+diesel = { version = "1.4", features = ["postgres", "uuidv07", "r2d2"] }
+
+# Framework for serializing and deserializing
+serde = "1.0"
+serde_derive = "1.0"
+
+# GraphQL server library
+juniper = "0.15"
+
+# Other libraries
+thiserror = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "0.7", features = ["serde", "v4"] }
+structopt = "0.3"
+dotenv = "0.15"
+env_logger = "0.8"
+argon2rs = "0.2"
+rand = "0.8"
