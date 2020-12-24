@@ -5,7 +5,7 @@ use crate::services::user;
 
 #[derive(Deserialize)]
 pub struct RegisterBody {
-    account: String,
+    name: String,
     password: Option<String>,
     mobile: Option<String>,
     role: String,
@@ -17,7 +17,7 @@ pub async fn create(
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || user::create(
-        body.account.clone(),
+        body.name.clone(),
         body.password.clone(),
         body.mobile.clone(),
         body.role.clone(),

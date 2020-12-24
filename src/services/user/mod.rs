@@ -8,7 +8,7 @@ use diesel::prelude::*;
 use utils::{ make_salt, make_hash };
 
 pub fn create(
-    account: String,
+    name: String,
     password: Option<String>,
     mobile: Option<String>,
     role: String,
@@ -33,7 +33,7 @@ pub fn create(
         .values(&InsertableUser{
             salt: salt,
             hash: hash,
-            account: account,
+            name: name,
             mobile: mobile,
             role: role,
         }).execute(conn)?;

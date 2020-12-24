@@ -7,7 +7,7 @@ pub struct User {
     pub salt: Option<String>,
     #[graphql(skip)]
     pub hash: Option<Vec<u8>>,
-    pub account: String,
+    pub name: String,
     pub mobile: Option<String>,
     pub role: String,
 }
@@ -17,7 +17,7 @@ pub struct User {
 pub struct InsertableUser {
     pub salt: Option<String>,
     pub hash: Option<Vec<u8>>,
-    pub account: String,
+    pub name: String,
     pub mobile: Option<String>,
     pub role: String,
 }
@@ -25,7 +25,8 @@ pub struct InsertableUser {
 #[derive(Serialize)]
 pub struct OutUser {
     pub id: i32,
-    pub account: String,
+    pub name: String,
+    pub mobile: Option<String>,
     pub role: String,
 } 
 
@@ -33,7 +34,8 @@ impl From<User> for OutUser {
     fn from(user: User) -> OutUser {
         OutUser {
             id: user.id,
-            account: user.account,
+            name: user.name,
+            mobile: user.mobile,
             role: user.role
         }
     }
