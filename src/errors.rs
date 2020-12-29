@@ -1,5 +1,6 @@
 use actix_web::{error::ResponseError, HttpResponse};
 use diesel::result::Error as DBError;
+use actix_web::error::BlockingError;
 use juniper::graphql_value;
 use std::convert::From;
 use thiserror::Error;
@@ -83,6 +84,16 @@ impl From<DBError> for ServiceError {
                 ServiceError::BadRequest(message)
             }
             _ => ServiceError::InternalServerError,
+        }
+    }
+}
+
+impl From<BlockingError<ServiceError>> for ServiceError {
+    fn from(error: BlockingError<ServiceError>) -> ServiceError {
+        match error {
+            // If not canceled, then return the raw error.
+            BlockingError::Error(e) => e,
+            BlockingError::Canceled => ServiceError::InternalServerError,
         }
     }
 }
