@@ -3,7 +3,7 @@ table! {
         id -> Int4,
         salt -> Nullable<Varchar>,
         hash -> Nullable<Bytea>,
-        name -> Text,
+        account -> Text,
         mobile -> Nullable<Text>,
         role -> Text,
     }
