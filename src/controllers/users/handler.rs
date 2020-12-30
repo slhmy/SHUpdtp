@@ -115,8 +115,16 @@ pub struct UpdateUserBody {
 pub async fn update(
     web::Path(id): web::Path<i32>,
     body: web::Json<UpdateUserBody>,
+    logged_user: LoggedUser,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
+    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    let cur_user = logged_user.0.unwrap();
+    if cur_user.id != id && cur_user.role != "super" && cur_user.role != "admin" {
+        let hint = "No permission.".to_string();
+        return  Err(ServiceError::BadRequest(hint));
+    }
+
     let res = web::block(move || user::update(
         id,
         body.new_account.clone(),
@@ -141,7 +149,7 @@ pub struct LoginBody {
 #[post("/login")]
 pub async fn login(
     body: web::Json<LoginBody>,
-    id: Identity,
+    identity: Identity,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || user::login(
@@ -156,12 +164,12 @@ pub async fn login(
     let user_string = serde_json::to_string(&res)
         .map_err(|_| ServiceError::InternalServerError)?;
     info!("user_string={}", user_string);
-    id.remember(user_string);
+    identity.remember(user_string);
     Ok(HttpResponse::Ok().json(res))
 }
 
 #[post("/logout")]
-pub fn logout(id: Identity) -> HttpResponse {
-    id.forget();
+pub fn logout(identity: Identity) -> HttpResponse {
+    identity.forget();
     HttpResponse::Ok().finish()
 }
