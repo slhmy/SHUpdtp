@@ -1,31 +1,9 @@
-use actix_web::{web, HttpResponse, FromRequest, Error, HttpRequest, get, post, put};
-use actix_web::dev::Payload;
-use actix_identity::{Identity, RequestIdentity};
+use actix_web::{web, HttpResponse, get, post, put};
+use actix_identity::Identity;
 use crate::errors::ServiceError;
 use crate::database::Pool;
 use crate::services::user;
-use crate::models::users::{LoggedUser, SlimUser};
-
-impl FromRequest for LoggedUser {
-    type Error = Error;
-    type Future = futures::future::Ready<Result<Self, Self::Error>>;
-    type Config = ();
-
-    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let identity = req.get_identity();
-
-        let slim_user = if let Some(identity) = identity {
-            match serde_json::from_str::<SlimUser>(&identity) {
-                Err(e) => return futures::future::err(e.into()),
-                Ok(y) => Ok(Some(y)),
-            }
-        } else {
-            Ok(None)
-        };
-
-        futures::future::ready(slim_user.map(LoggedUser))
-    }
-}
+use crate::models::users::LoggedUser;
 
 #[derive(Deserialize)]
 pub struct GetUserListBody {

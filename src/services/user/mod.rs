@@ -2,10 +2,9 @@ mod utils;
 
 use crate::errors::{ ServiceResult, ServiceError };
 use crate::database::{db_connection, Pool};
-use crate::models::users::{ User, InsertableUser, OutUser, UserForm, SlimUser };
 use actix_web::web;
 use diesel::prelude::*;
-use utils::{ make_salt, make_hash };
+use crate::models::users::*;
 
 pub fn create(
     account: String,
@@ -21,15 +20,15 @@ pub fn create(
     }
 
     let (salt, hash) = if password.is_none() { (None, None) } else {
-        let salt = make_salt();
-        let hash = make_hash(&password.unwrap(), &salt).to_vec();
+        let salt = utils::make_salt();
+        let hash = utils::make_hash(&password.unwrap(), &salt).to_vec();
         (Some(salt), Some(hash))
     };
 
     let conn = &db_connection(&pool)?;
 
-    use crate::schema::users::dsl::users;
-    diesel::insert_into(users)
+    use crate::schema::users as users_schema;
+    diesel::insert_into(users_schema::table)
         .values(&InsertableUser{
             salt: salt,
             hash: hash,
@@ -48,8 +47,8 @@ pub fn get(
 {
     let conn = &db_connection(&pool)?;
 
-    use crate::schema::users;
-    let user: User = users::table.filter(users::id.eq(id)).first(conn)?;
+    use crate::schema::users as users_schema;
+    let user: User = users_schema::table.filter(users_schema::id.eq(id)).first(conn)?;
 
     Ok(OutUser::from(user))
 }
@@ -65,13 +64,13 @@ pub fn update(
     let conn = &db_connection(&pool)?;
 
     let (new_salt, new_hash) = if new_password.is_none() { (None, None) } else {
-        let salt = make_salt();
-        let hash = make_hash(&new_password.unwrap(), &salt).to_vec();
+        let salt = utils::make_salt();
+        let hash = utils::make_hash(&new_password.unwrap(), &salt).to_vec();
         (Some(salt), Some(hash))
     };
 
-    use crate::schema::users;
-    diesel::update(users::table.filter(users::id.eq(id)))
+    use crate::schema::users as users_schema;
+    diesel::update(users_schema::table.filter(users_schema::id.eq(id)))
         .set(UserForm {
             salt: new_salt,
             hash: new_hash,
@@ -103,19 +102,19 @@ pub fn get_list(
 
     let conn = &db_connection(&pool)?;
 
-    use crate::schema::users;
-    let target = users::table
-        .filter(users::id.nullable().eq(id_filter).or(id_filter.is_none()))
-        .filter(users::account.nullable().like(account_filter.clone()).or(account_filter.is_none()))
-        .filter(users::mobile.like(mobile_filter.clone()).or(mobile_filter.is_none()))
-        .filter(users::role.nullable().eq(role_filter.clone()).or(role_filter.is_none()))
+    use crate::schema::users as users_schema;
+    let target = users_schema::table
+        .filter(users_schema::id.nullable().eq(id_filter).or(id_filter.is_none()))
+        .filter(users_schema::account.nullable().like(account_filter.clone()).or(account_filter.is_none()))
+        .filter(users_schema::mobile.like(mobile_filter.clone()).or(mobile_filter.is_none()))
+        .filter(users_schema::role.nullable().eq(role_filter.clone()).or(role_filter.is_none()))
         .limit(limit.into())
         .offset(offset.into());
 
     let users: Vec<User> = match id_order {
         None => target.load(conn)?,
-        Some(true) => target.order(users::id.asc()).load(conn)?,
-        Some(false) => target.order(users::id.desc()).load(conn)?,
+        Some(true) => target.order(users_schema::id.asc()).load(conn)?,
+        Some(false) => target.order(users_schema::id.desc()).load(conn)?,
     };
 
     let out_users = {
@@ -136,14 +135,14 @@ pub fn login(
 ) -> ServiceResult<SlimUser> {
     let conn = &db_connection(&pool)?;
 
-    use crate::schema::users;
-    let user: User = users::table.filter(users::account.eq(account)).first(conn)?;
+    use crate::schema::users as users_schema;
+    let user: User = users_schema::table.filter(users_schema::account.eq(account)).first(conn)?;
 
     if user.hash.is_none() || user.salt.is_none() {
         let hint = "Password was not set.".to_string();
         Err(ServiceError::BadRequest(hint))
     } else {
-        let hash = make_hash(&password, &user.clone().salt.unwrap()).to_vec();
+        let hash = utils::make_hash(&password, &user.clone().salt.unwrap()).to_vec();
         if Some(hash) == user.hash {
             Ok(SlimUser::from(user))
         } else {
