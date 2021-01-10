@@ -15,6 +15,8 @@ actix-web = "3"
 # Middleware
 actix-identity = "0.3"
 actix-cors = "0.5"
+# Extension
+actix-multipart = "0.3"
 
 # ORM and Query Builder
 diesel = { version = "1.4", features = ["postgres", "uuidv07", "r2d2"] }
@@ -40,3 +42,11 @@ rand = "0.8"
 time = "0.2"
 shrinkwraprs = "0.2"
 futures = "0.3"
+toml = "0.5"
+sha2 = "0.9.1"
+sha-1 = "0.9.1"
+md-5 = "0.9.1"
+hex = "0.4"
+hmac = "0.10.1"
+base64 = "0.13.0"
+digest = "0.9.0"
