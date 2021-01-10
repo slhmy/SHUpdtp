@@ -1,5 +1,6 @@
 use actix_web::{error::ResponseError, HttpResponse};
 use diesel::result::Error as DBError;
+use std::io::Error as IOError;
 use actix_web::error::BlockingError;
 use juniper::graphql_value;
 use std::convert::From;
@@ -84,6 +85,21 @@ impl From<DBError> for ServiceError {
                 ServiceError::BadRequest(message)
             }
             _ => ServiceError::InternalServerError,
+        }
+    }
+}
+
+impl From<IOError> for ServiceError {
+    fn from(error: IOError) -> ServiceError {
+        match error.kind() {
+            std::io::ErrorKind::NotFound => {
+                let message = "An entity was not found, often a file.".to_string();
+                ServiceError::BadRequest(message)
+            },
+            _ => {
+                let message = "Something went wrong with file analysis, please check your format.".to_string();
+                ServiceError::BadRequest(message)
+            },
         }
     }
 }

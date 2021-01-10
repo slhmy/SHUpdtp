@@ -57,6 +57,7 @@ async fn main() -> std::io::Result<()> {
             ))
             .service(hello)
             .configure(controllers::users::route)
+            .configure(controllers::problems::route)
     })
     .bind(("0.0.0.0", opt.port))
     .unwrap()
