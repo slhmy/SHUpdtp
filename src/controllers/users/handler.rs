@@ -18,17 +18,17 @@ pub struct GetUserListBody {
 
 #[get("")]
 pub async fn get_list(
-    body: web::Json<GetUserListBody>,
+    query: web::Query<GetUserListBody>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || user::get_list(
-        body.id_filter,
-        body.account_filter.clone(),
-        body.mobile_filter.clone(),
-        body.role_filter.clone(),
-        body.id_order.clone(),
-        body.limit,
-        body.offset,
+        query.id_filter,
+        query.account_filter.clone(),
+        query.mobile_filter.clone(),
+        query.role_filter.clone(),
+        query.id_order.clone(),
+        query.limit,
+        query.offset,
         pool
     )).await.map_err(|e| {
         eprintln!("{}", e);

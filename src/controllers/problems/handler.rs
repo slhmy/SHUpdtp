@@ -54,18 +54,18 @@ pub struct GetProblemListBody {
 
 #[get("")]
 pub async fn get_list(
-    body: web::Json<GetProblemListBody>,
+    query: web::Query<GetProblemListBody>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || problem::get_list(
-        body.id_filter,
-        body.title_filter.clone(),
-        body.tag_filter.clone(),
-        body.difficulty_filter.clone(),
-        body.id_order.clone(),
-        body.difficulty_order.clone(),
-        body.limit,
-        body.offset,
+        query.id_filter,
+        query.title_filter.clone(),
+        query.tag_filter.clone(),
+        query.difficulty_filter.clone(),
+        query.id_order.clone(),
+        query.difficulty_order.clone(),
+        query.limit,
+        query.offset,
         pool
     )).await.map_err(|e| {
         eprintln!("{}", e);
