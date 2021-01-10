@@ -1,5 +1,8 @@
 use crate::schema::*;
 use shrinkwraprs::Shrinkwrap;
+use actix_web::{FromRequest, Error, HttpRequest};
+use actix_web::dev::Payload;
+use actix_identity::RequestIdentity;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable, juniper::GraphQLObject)]
 pub struct User {
@@ -73,5 +76,26 @@ impl From<User> for SlimUser {
 impl From<SlimUser> for LoggedUser {
     fn from(slim_user: SlimUser) -> Self {
         LoggedUser(Some(slim_user))
+    }
+}
+
+impl FromRequest for LoggedUser {
+    type Error = Error;
+    type Future = futures::future::Ready<Result<Self, Self::Error>>;
+    type Config = ();
+
+    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let identity = req.get_identity();
+
+        let slim_user = if let Some(identity) = identity {
+            match serde_json::from_str::<SlimUser>(&identity) {
+                Err(e) => return futures::future::err(e.into()),
+                Ok(y) => Ok(Some(y)),
+            }
+        } else {
+            Ok(None)
+        };
+
+        futures::future::ready(slim_user.map(LoggedUser))
     }
 }
