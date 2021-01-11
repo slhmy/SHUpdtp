@@ -8,6 +8,10 @@ pub(crate) struct Opt {
     #[structopt(short, long, env = "PORT", default_value = "3000")]
     pub port: u16,
 
+    /// Count of judge actor to spawn
+    #[structopt(short, long, env = "JUDGE_ACTOR_COUNT", default_value = "1")]
+    pub judge_actor_count: usize,
+
     /// Domain
     #[structopt(long, env = "DOMAIN", default_value = "localhost")]
     pub domain: String,

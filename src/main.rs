@@ -9,6 +9,7 @@ mod schema;
 mod models;
 mod services;
 mod controllers;
+mod judge_actor;
 
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpResponse, HttpServer};
@@ -39,9 +40,12 @@ async fn main() -> std::io::Result<()> {
     let secure_cookie = opt.secure_cookie;
     let auth_duration = time::Duration::hours(i64::from(opt.auth_duration_in_hour));
 
+    let judge_actor_addr = judge_actor::start_judge_actor(opt.clone());
+
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
+            .data(judge_actor::JudgeActorAddr { addr: judge_actor_addr.clone() })
             .wrap(Logger::default())
             .wrap(Cors::default()
                 .supports_credentials())
