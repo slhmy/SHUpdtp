@@ -1,2 +1,3 @@
 /target
+/data/rsync_master/rsyncd.log
 .env
