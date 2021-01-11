@@ -1,0 +1,14 @@
+version: "3"
+services:
+    oj-rsync-master:
+        image: registry.cn-hangzhou.aliyuncs.com/onlinejudge/oj_rsync
+        container_name: oj-rsync-master
+        volumes:
+            - $PWD/data/test_cases:/test_case:ro
+            - $PWD/data/rsync_master:/log
+        environment:
+            - RSYNC_MODE=master
+            - RSYNC_USER=ojrsync
+            - RSYNC_PASSWORD=CHANGE_THIS_PASSWORD
+        ports:
+            - "0.0.0.0:873:873"
