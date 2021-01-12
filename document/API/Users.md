@@ -2,16 +2,16 @@
 
 ## Create `POST /users`
 ### Body `Json`
-- `account`!    
-- `password`    
+- `account`!
+- `password`!
 - `mobile`
 - `role`!
 ### Return `null`
 200 means success
 ### Explain
-Method which enables you to create a new user. You must provide a least one parameter among `password` and `mobile`, although they are both optional, because users should be able to login either by passwords or by their personal mobiles.
+Method which enables you to create a new user.
 
-*Currently mobile login is not supported. And server won't reject bad mobile strings. So we suggest you only use password to create/register account.
+*Currently mobile login is not supported. And server won't reject bad mobile strings.
 
 ## Login `POST /users/login`
 ### Body `Json`
