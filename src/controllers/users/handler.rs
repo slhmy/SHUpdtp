@@ -41,7 +41,7 @@ pub async fn get_list(
 #[derive(Deserialize)]
 pub struct CreateUserBody {
     account: String,
-    password: Option<String>,
+    password: String,
     mobile: Option<String>,
     role: String,
 }

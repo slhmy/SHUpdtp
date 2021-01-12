@@ -8,20 +8,15 @@ use crate::models::users::*;
 
 pub fn create(
     account: String,
-    password: Option<String>,
+    password: String,
     mobile: Option<String>,
     role: String,
     pool: web::Data<Pool>
 ) -> ServiceResult<()>
 {
-    if password.is_none() && mobile.is_none() {
-        let hint = "Please provide password | mobile".to_string();
-        return Err(ServiceError::BadRequest(hint));
-    }
-
-    let (salt, hash) = if password.is_none() { (None, None) } else {
+    let (salt, hash) = {
         let salt = utils::make_salt();
-        let hash = utils::make_hash(&password.unwrap(), &salt).to_vec();
+        let hash = utils::make_hash(&password, &salt).to_vec();
         (Some(salt), Some(hash))
     };
 
