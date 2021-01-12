@@ -26,6 +26,19 @@ table! {
 }
 
 table! {
+    status (id) {
+        id -> Uuid,
+        problem_id -> Int4,
+        user_id -> Int4,
+        region -> Nullable<Text>,
+        state -> Text,
+        settings -> Nullable<Text>,
+        result -> Nullable<Text>,
+        submit_time -> Timestamp,
+    }
+}
+
+table! {
     users (id) {
         id -> Int4,
         salt -> Nullable<Varchar>,
@@ -40,5 +53,6 @@ allow_tables_to_appear_in_same_query!(
     problem_sets,
     problems,
     regions,
+    status,
     users,
 );
