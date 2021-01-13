@@ -47,8 +47,7 @@ async fn main() -> std::io::Result<()> {
             .data(pool.clone())
             .data(judge_actor::JudgeActorAddr { addr: judge_actor_addr.clone() })
             .wrap(Logger::default())
-            .wrap(Cors::default()
-                .supports_credentials())
+            .wrap(Cors::permissive())
             .wrap(IdentityService::new(
                 CookieIdentityPolicy::new(cookie_secret_key.as_bytes())
                     .name("auth")
