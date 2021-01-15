@@ -1,4 +1,5 @@
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate lazy_static;
 #[macro_use] extern crate diesel;
 #[macro_use] extern crate log;
 
@@ -10,6 +11,8 @@ mod models;
 mod services;
 mod controllers;
 mod judge_actor;
+mod statics;
+mod utils;
 
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpResponse, HttpServer};
@@ -61,6 +64,8 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .configure(controllers::users::route)
             .configure(controllers::problems::route)
+            .configure(controllers::judge_servers::route)
+            .configure(controllers::submissions::route)
     })
     .bind(("0.0.0.0", opt.port))
     .unwrap()

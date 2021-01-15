@@ -4,12 +4,10 @@ use actix_web::{FromRequest, Error, HttpRequest};
 use actix_web::dev::Payload;
 use actix_identity::RequestIdentity;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Queryable, juniper::GraphQLObject)]
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
 pub struct User {
     pub id: i32,
-    #[graphql(skip)]
     pub salt: Option<String>,
-    #[graphql(skip)]
     pub hash: Option<Vec<u8>>,
     pub account: String,
     pub mobile: Option<String>,
@@ -55,7 +53,7 @@ pub struct UserForm {
     pub role: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, juniper::GraphQLObject)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlimUser {
     pub id: i32,
     pub role: String,

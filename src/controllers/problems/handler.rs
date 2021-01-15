@@ -41,7 +41,7 @@ pub async fn batch_create(
 }
 
 #[derive(Deserialize)]
-pub struct GetProblemListBody {
+pub struct GetProblemListParams {
     id_filter: Option<i32>,
     title_filter: Option<String>,
     tag_filter: Option<Vec<String>>,
@@ -54,7 +54,7 @@ pub struct GetProblemListBody {
 
 #[get("")]
 pub async fn get_list(
-    query: web::Query<GetProblemListBody>,
+    query: web::Query<GetProblemListParams>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || problem::get_list(

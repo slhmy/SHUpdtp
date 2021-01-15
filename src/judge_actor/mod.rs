@@ -1,3 +1,6 @@
+pub mod handler;
+mod utils;
+
 use diesel::prelude::*;
 use actix::prelude::*;
 

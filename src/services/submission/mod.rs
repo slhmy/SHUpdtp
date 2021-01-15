@@ -1,0 +1,81 @@
+use actix_web::web;
+use diesel::prelude::*;
+use std::fs::File;
+use std::io::prelude::*;
+use uuid::Uuid;
+use crate::errors::{ ServiceResult };
+use crate::database::{db_connection, Pool};
+use crate::models::*;
+use crate::utils::get_cur_naive_date_time;
+use crate::statics::WAITING_QUEUE;
+
+pub fn create(
+    region: Option<String>,
+    problem_id: i32,
+    user_id: i32,
+    src: String,
+    language: String,
+    pool: web::Data<Pool>
+) -> ServiceResult<Uuid>
+{
+    let id = Uuid::new_v4();
+    let language_config = languages::get_lang_config(&language);
+
+    let conn = &db_connection(&pool)?;
+    use crate::schema::submissions as submissions_schema;
+    use crate::schema::problems as problems_schema;
+
+    let raw_problem: problems::RawProblem = problems_schema::table.filter(problems_schema::id.eq(problem_id)).first(conn)?;
+    let problem = problems::Problem::from(raw_problem);
+    let mut spj_src = None;
+    if problem.settings.is_spj {
+        let mut file = File::open(format!("data/test_cases/{}/spj_src.cpp", problem.id))?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)?;
+        spj_src = Some(contents);
+    }
+
+    let settings = submissions::JudgeSettings {
+        language_config: language_config,
+        src: src,
+        max_cpu_time: if &language == "c" || &language == "cpp" { 
+            problem.settings.high_performance_max_cpu_time 
+        } else { problem.settings.other_max_cpu_time },
+        max_memory: if &language == "c" || &language == "cpp" {
+            problem.settings.high_performance_max_memory
+        } else { problem.settings.other_max_memory },
+        test_case_id: Some(problem.id.to_string()),
+        test_case: None,
+        spj_version: Some("1".to_owned()),
+        spj_config: if problem.settings.is_spj {
+            Some(languages::spj_config())
+        } else { None },
+        spj_compile_config: if problem.settings.is_spj {
+            Some(languages::spj_compile_config())
+        } else { None },
+        spj_src: spj_src,
+        output: !problem.settings.opaque_output,
+    };
+
+    let settings_string = serde_json::to_string(&settings).unwrap();
+
+    diesel::insert_into(submissions_schema::table)
+        .values(&submissions::InsertableSubmission{
+            id: id,
+            problem_id: problem_id,
+            region: region,
+            user_id: user_id,
+            state: String::from("Waiting"),
+            settings: settings_string,
+            result: None,
+            submit_time: get_cur_naive_date_time(),
+            is_accepted: None,
+        }).execute(conn)?;
+
+    {
+        let mut lock = WAITING_QUEUE.write().unwrap();
+        lock.push_back(id);
+    }
+
+    Ok(id)
+}

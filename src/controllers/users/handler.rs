@@ -6,7 +6,7 @@ use crate::services::user;
 use crate::models::users::LoggedUser;
 
 #[derive(Deserialize)]
-pub struct GetUserListBody {
+pub struct GetUserListParams {
     id_filter: Option<i32>,
     account_filter: Option<String>,
     mobile_filter: Option<String>,
@@ -18,7 +18,7 @@ pub struct GetUserListBody {
 
 #[get("")]
 pub async fn get_list(
-    query: web::Query<GetUserListBody>,
+    query: web::Query<GetUserListParams>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || user::get_list(

@@ -7,22 +7,22 @@ use hex::ToHex;
 use crate::models::problems;
 use crate::errors::{ ServiceResult, ServiceError };
 
-fn read_settings(path: &str) -> std::io::Result<problems::Settings> {
+fn read_settings(path: &str) -> std::io::Result<problems::ProblemSettings> {
     let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
-    let settings: problems::Settings = toml::from_str(&contents)?;
+    let settings: problems::ProblemSettings = toml::from_str(&contents)?;
 
     Ok(settings)
 }
 
-fn read_info(path: &str) -> std::io::Result<problems::Info> {
+fn read_info(path: &str) -> std::io::Result<problems::ProblemInfo> {
     let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     
-    let info: problems::Info = toml::from_str(&contents)?;
+    let info: problems::ProblemInfo = toml::from_str(&contents)?;
 
     Ok(info)
 }
@@ -82,7 +82,7 @@ pub fn read_insertable_problem(path: &str) -> ServiceResult<problems::Insertable
     let (examples, example_count) = read_examples(&examples_path)?;
     let settings = read_settings(&settings_path)?;
 
-    let contents = problems::Contents {
+    let contents = problems::ProblemContents {
         description: description,
         example_count: example_count,
         examples: examples,

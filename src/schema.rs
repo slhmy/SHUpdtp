@@ -26,15 +26,16 @@ table! {
 }
 
 table! {
-    status (id) {
+    submissions (id) {
         id -> Uuid,
         problem_id -> Int4,
         user_id -> Int4,
         region -> Nullable<Text>,
         state -> Text,
-        settings -> Nullable<Text>,
+        settings -> Text,
         result -> Nullable<Text>,
         submit_time -> Timestamp,
+        is_accepted -> Nullable<Bool>,
     }
 }
 
@@ -53,6 +54,6 @@ allow_tables_to_appear_in_same_query!(
     problem_sets,
     problems,
     regions,
-    status,
+    submissions,
     users,
 );

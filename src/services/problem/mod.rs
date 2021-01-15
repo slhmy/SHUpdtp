@@ -38,7 +38,7 @@ pub fn batch_create(
             .into_string().unwrap()) {
             Ok(insertable_problem) => {
                 let mut target_problem = insertable_problem.clone();
-                let mut settings: Settings = serde_json::from_str(&insertable_problem.settings).unwrap();
+                let mut settings: ProblemSettings = serde_json::from_str(&insertable_problem.settings).unwrap();
                 match utils::prepare_test_cases(&(dir.path()
                     .into_os_string()
                     .into_string().unwrap() + "/TestCases"),
