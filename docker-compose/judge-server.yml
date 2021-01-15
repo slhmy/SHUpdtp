@@ -17,7 +17,7 @@ services:
             - $PWD/data/judge_server/log:/log
             - $PWD/data/judge_server/run:/judger
         environment:
-            - BACKEND_URL=http://172.17.0.1:8080/judge_server/heartbeat
+            - BACKEND_URL=http://172.17.0.1:8080/judge_servers/heartbeat
             - SERVICE_URL=http://127.0.0.1:12345
             - TOKEN=YOUR_TOKEN_HERE    
         ports:
