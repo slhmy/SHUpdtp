@@ -36,6 +36,7 @@ table! {
         result -> Nullable<Text>,
         submit_time -> Timestamp,
         is_accepted -> Nullable<Bool>,
+        finish_time -> Nullable<Timestamp>,
     }
 }
 

@@ -5,6 +5,7 @@ use crate::statics::WAITING_QUEUE;
 use crate::models::*;
 use super::JudgeActor;
 use super::utils::*;
+use crate::utils::*;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct StartJudge();
@@ -99,6 +100,7 @@ impl Handler<StartJudge> for JudgeActor {
                         submissions_schema::state.eq("Finished".to_owned()),
                         submissions_schema::result.eq(serde_json::to_string(&result).unwrap()),
                         submissions_schema::is_accepted.eq(result.is_accepted),
+                        submissions_schema::finish_time.eq(get_cur_naive_date_time())
                     ))
                     .execute(&self.0).expect("Error changing submissions's data.");
 
