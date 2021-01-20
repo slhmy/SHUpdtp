@@ -4,10 +4,11 @@ use std::fs::File;
 use std::io::prelude::*;
 use uuid::Uuid;
 use crate::errors::{ ServiceResult };
-use crate::database::{db_connection, Pool};
+use crate::database::{ db_connection, Pool };
 use crate::models::*;
 use crate::utils::get_cur_naive_date_time;
 use crate::statics::WAITING_QUEUE;
+use crate::judge_actor::{ JudgeActorAddr, handler::StartJudge };
 
 pub fn create(
     region: Option<String>,
@@ -15,7 +16,8 @@ pub fn create(
     user_id: i32,
     src: String,
     language: String,
-    pool: web::Data<Pool>
+    pool: web::Data<Pool>,
+    judge_actor: web::Data<JudgeActorAddr>,
 ) -> ServiceResult<Uuid>
 {
     let id = Uuid::new_v4();
@@ -60,7 +62,7 @@ pub fn create(
     let settings_string = serde_json::to_string(&settings).unwrap();
 
     diesel::insert_into(submissions_schema::table)
-        .values(&submissions::InsertableSubmission{
+        .values(&submissions::InsertableSubmission {
             id: id,
             problem_id: problem_id,
             region: region,
@@ -77,5 +79,22 @@ pub fn create(
         lock.push_back(id);
     }
 
+    judge_actor.addr.do_send(StartJudge());
+
     Ok(id)
+}
+
+pub fn get(
+    id: Uuid,
+    pool: web::Data<Pool>,
+) -> ServiceResult<submissions::Submission> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::submissions as submissions_schema;
+
+    let raw: submissions::RawSubmission = submissions_schema::table
+        .filter(submissions_schema::id.eq(id))
+        .first(conn)?;
+
+    Ok(submissions::Submission::from(raw))
 }
