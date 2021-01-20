@@ -26,6 +26,13 @@ table! {
 }
 
 table! {
+    samples (submission_id) {
+        submission_id -> Uuid,
+        description -> Nullable<Text>,
+    }
+}
+
+table! {
     submissions (id) {
         id -> Uuid,
         problem_id -> Int4,
@@ -55,6 +62,7 @@ allow_tables_to_appear_in_same_query!(
     problem_sets,
     problems,
     regions,
+    samples,
     submissions,
     users,
 );

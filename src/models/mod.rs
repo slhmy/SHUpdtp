@@ -4,3 +4,4 @@ pub mod problems;
 pub mod judge_servers;
 pub mod languages;
 pub mod submissions;
+pub mod samples;

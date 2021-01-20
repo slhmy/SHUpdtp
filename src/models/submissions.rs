@@ -150,7 +150,7 @@ pub struct RawSubmission {
     pub result: Option<String>,
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
-    pub finish_time: NaiveDateTime,
+    pub finish_time: Option<NaiveDateTime>,
 }
 
 #[derive(Debug, Clone, Deserialize, Insertable, Queryable)]
@@ -167,7 +167,7 @@ pub struct InsertableSubmission {
     pub is_accepted: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Queryable)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Submission {
     pub id: Uuid,
     pub problem_id: i32,
@@ -178,7 +178,7 @@ pub struct Submission {
     pub result: Option<JudgeResult>,
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
-    pub finish_time: NaiveDateTime,
+    pub finish_time: Option<NaiveDateTime>,
 }
 
 impl From<RawSubmission> for Submission {
