@@ -1,7 +1,7 @@
 mod utils;
 
 use crate::errors::ServiceResult;
-use crate::database::{db_connection, Pool};
+use crate::database::{ db_connection, Pool };
 use actix_web::web;
 use diesel::prelude::*;
 use uuid::Uuid;
