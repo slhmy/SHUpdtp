@@ -11,5 +11,6 @@ pub fn route(cfg: &mut web::ServiceConfig) {
             .service(handler::get_list)
             .service(handler::login)
             .service(handler::logout)
+            .service(handler::me)
     );
 }

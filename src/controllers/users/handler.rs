@@ -151,3 +151,11 @@ pub fn logout(identity: Identity) -> HttpResponse {
     identity.forget();
     HttpResponse::Ok().finish()
 }
+
+#[get("/me")]
+pub async fn me(
+    logged_user: LoggedUser,
+) -> Result<HttpResponse, ServiceError> {
+    if let Some(res) = logged_user.0 { Ok(HttpResponse::Ok().json(&res)) }
+    else { Err(ServiceError::Unauthorized) }
+}
