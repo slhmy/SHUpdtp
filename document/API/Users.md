@@ -19,16 +19,16 @@ Method which enables you to create a new user.
 - `password`!
 ### Return `Json`
 SlimUser
-- id
-- role
+- `id` int
+- `role` string
 
 ## Check Oline Info `GET /users/{id}`
 ### Return `Json`
 OutUser
-- id
-- account
-- mobile
-- role
+- `id` int
+- `account` string
+- `mobile` string
+- `role` string
 
 ## Logout `POST /users/logout`
 ### Return `null`
