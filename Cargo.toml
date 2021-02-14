@@ -30,7 +30,7 @@ serde_json = "1.0"
 # Other libraries
 thiserror = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
-uuid = { version = "0.7", features = ["serde", "v4"] }
+uuid = { version = "0.8", features = ["serde", "v4"] }
 structopt = "0.3"
 dotenv = "0.15"
 log = "0.4"
