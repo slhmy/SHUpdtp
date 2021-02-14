@@ -118,7 +118,7 @@ dependencies = [
  "serde_urlencoded",
  "sha-1",
  "slab",
- "time 0.2.23",
+ "time 0.2.25",
 ]
 
 [[package]]
@@ -132,7 +132,7 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
- "time 0.2.23",
+ "time 0.2.25",
 ]
 
 [[package]]
@@ -316,7 +316,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "socket2",
- "time 0.2.23",
+ "time 0.2.25",
  "tinyvec",
  "url",
 ]
@@ -701,7 +701,7 @@ dependencies = [
  "percent-encoding",
  "rand 0.7.3",
  "sha2",
- "time 0.2.23",
+ "time 0.2.25",
  "version_check",
 ]
 
@@ -2052,7 +2052,7 @@ dependencies = [
  "shrinkwraprs",
  "structopt",
  "thiserror",
- "time 0.2.23",
+ "time 0.2.25",
  "toml",
  "uuid",
 ]
@@ -2263,9 +2263,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.2.23"
+version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcdaeea317915d59b2b4cd3b5efcd156c309108664277793f5351700c02ce98b"
+checksum = "1195b046942c221454c2539395f85413b33383a067449d78aab2b7b052a142f7"
 dependencies = [
  "const_fn",
  "libc",
