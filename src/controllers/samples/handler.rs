@@ -56,7 +56,7 @@ pub async fn get_list(
     if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
     let cur_user = logged_user.0.unwrap();
 
-    if cur_user.role != "super" && cur_user.role != "admin" {
+    if cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
         return  Err(ServiceError::BadRequest(hint));
     }
@@ -83,7 +83,7 @@ pub async fn get(
     if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
     let cur_user = logged_user.0.unwrap();
 
-    if cur_user.role != "super" && cur_user.role != "admin" {
+    if cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
         return  Err(ServiceError::BadRequest(hint));
     }
@@ -107,7 +107,7 @@ pub async fn delete(
 ) -> Result<HttpResponse, ServiceError> {
     if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
     let cur_user = logged_user.0.unwrap();
-    if cur_user.role != "super" && cur_user.role != "admin" {
+    if cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
         return  Err(ServiceError::BadRequest(hint));
     }

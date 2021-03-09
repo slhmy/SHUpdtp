@@ -98,7 +98,7 @@ pub async fn update(
 ) -> Result<HttpResponse, ServiceError> {
     if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
     let cur_user = logged_user.0.unwrap();
-    if cur_user.id != id && cur_user.role != "super" && cur_user.role != "admin" {
+    if cur_user.id != id && cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
         return  Err(ServiceError::BadRequest(hint));
     }
@@ -158,4 +158,28 @@ pub async fn me(
 ) -> Result<HttpResponse, ServiceError> {
     if let Some(res) = logged_user.0 { Ok(HttpResponse::Ok().json(&res)) }
     else { Err(ServiceError::Unauthorized) }
+}
+
+#[derive(Deserialize)]
+pub struct GetPermittedMethodsParams {
+    path: String,
+}
+
+#[get("/permitted_methods")]
+pub async fn get_permitted_methods(
+    query: web::Query<GetPermittedMethodsParams>,
+    logged_user: LoggedUser,
+) -> Result<HttpResponse, ServiceError> {
+    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    let cur_user = logged_user.0.unwrap();
+
+    let res = web::block(move || user::get_permitted_methods(
+        cur_user.role,
+        query.path.clone(),
+    )).await.map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
 }

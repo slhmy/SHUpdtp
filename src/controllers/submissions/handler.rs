@@ -59,7 +59,7 @@ pub async fn get(
         .select(submissions_schema::user_id)
         .first(conn)?;
 
-    if cur_user.id != user_id && cur_user.role != "super" && cur_user.role != "admin" {
+    if cur_user.id != user_id && cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
         return  Err(ServiceError::BadRequest(hint));
     }
