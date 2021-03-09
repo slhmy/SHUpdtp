@@ -1,0 +1,9 @@
+['/']
+sup = ['manage']
+admin = ['manage']
+other = []
+
+['/manage']
+sup = ['user_manage', 'problem_manage']
+admin = ['problem_manage']
+others = []

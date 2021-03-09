@@ -97,3 +97,13 @@ impl FromRequest for LoggedUser {
         futures::future::ready(slim_user.map(LoggedUser))
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthConfig {
+    pub sup: Option<Vec<String>>,
+    pub admin: Option<Vec<String>>,
+    pub teacher: Option<Vec<String>>,
+    pub student: Option<Vec<String>>,
+    pub net_friend: Option<Vec<String>>,
+    pub others: Option<Vec<String>>,
+}

@@ -146,3 +146,25 @@ pub fn login(
         }
     }
 }
+
+pub fn get_permitted_methods(
+    role: String,
+    path: String,
+) -> ServiceResult<Vec<String>> {
+    use crate::statics::AUTH_CONFIG;
+    match AUTH_CONFIG.get(&path) {
+        Some(config) => {
+            match role.as_str() {
+                "sup" => Ok(config.sup.clone().unwrap_or(vec![])),
+                "admin" => Ok(config.admin.clone().unwrap_or(vec![])),
+                "student" => Ok(config.student.clone().unwrap_or(vec![])),
+                "teacher" => Ok(config.teacher.clone().unwrap_or(vec![])),
+                _ => Ok(config.others.clone().unwrap_or(vec![])),
+            }
+        },
+        None => {
+            let hint = "Path not set in config.".to_string();
+            Err(ServiceError::BadRequest(hint))
+        }
+    }
+}
