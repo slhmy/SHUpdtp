@@ -1,8 +1,8 @@
 pub mod handler;
 mod utils;
 
-use diesel::prelude::*;
 use actix::prelude::*;
+use diesel::prelude::*;
 
 pub struct JudgeActor(pub PgConnection);
 
@@ -17,7 +17,10 @@ pub struct JudgeActorAddr {
 pub(crate) fn start_judge_actor(opt: crate::cli_args::Opt) -> Addr<JudgeActor> {
     let database_url = opt.database_url.clone();
 
-    info!("Spawning {} JudgeActor in SyncArbiter", opt.judge_actor_count);
+    info!(
+        "Spawning {} JudgeActor in SyncArbiter",
+        opt.judge_actor_count
+    );
 
     SyncArbiter::start(opt.judge_actor_count, move || {
         JudgeActor(PgConnection::establish(&database_url).unwrap())

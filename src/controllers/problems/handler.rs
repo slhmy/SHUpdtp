@@ -1,10 +1,10 @@
-use actix_web::{web, HttpResponse, get, post, put, delete};
-use actix_multipart::Multipart;
-use futures::{StreamExt, TryStreamExt};
-use crate::errors::ServiceError;
 use crate::database::Pool;
+use crate::errors::ServiceError;
 use crate::models::users::LoggedUser;
 use crate::services::problem;
+use actix_multipart::Multipart;
+use actix_web::{delete, get, post, put, web, HttpResponse};
+use futures::{StreamExt, TryStreamExt};
 
 #[post("")]
 pub async fn batch_create(
@@ -21,7 +21,9 @@ pub async fn batch_create(
             filename = Some(content_type.get_filename().unwrap().to_owned());
         } else {
             // only accept one file
-            if filename.clone().unwrap() != content_type.get_filename().unwrap() { continue; }
+            if filename.clone().unwrap() != content_type.get_filename().unwrap() {
+                continue;
+            }
         }
 
         // Field in turn is stream of *Bytes* object
@@ -32,10 +34,12 @@ pub async fn batch_create(
         }
     }
 
-    let res = web::block(move || problem::batch_create(&bytes, pool)).await.map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res = web::block(move || problem::batch_create(&bytes, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(res))
 }
@@ -57,17 +61,21 @@ pub async fn get_list(
     query: web::Query<GetProblemListParams>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let res = web::block(move || problem::get_list(
-        query.id_filter,
-        query.title_filter.clone(),
-        query.tag_filter.clone(),
-        query.difficulty_filter.clone(),
-        query.id_order.clone(),
-        query.difficulty_order.clone(),
-        query.limit,
-        query.offset,
-        pool
-    )).await.map_err(|e| {
+    let res = web::block(move || {
+        problem::get_list(
+            query.id_filter,
+            query.title_filter.clone(),
+            query.tag_filter.clone(),
+            query.difficulty_filter.clone(),
+            query.id_order.clone(),
+            query.difficulty_order.clone(),
+            query.limit,
+            query.offset,
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
         eprintln!("{}", e);
         e
     })?;
@@ -81,20 +89,21 @@ pub async fn get(
     logged_user: LoggedUser,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
     let cur_user = logged_user.0.unwrap();
     if cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
-        return  Err(ServiceError::BadRequest(hint));
+        return Err(ServiceError::BadRequest(hint));
     }
 
-    let res = web::block(move || problem::get(
-        id,
-        pool,
-    )).await.map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res = web::block(move || problem::get(id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }
@@ -105,20 +114,21 @@ pub async fn delete(
     logged_user: LoggedUser,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
     let cur_user = logged_user.0.unwrap();
     if cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
-        return  Err(ServiceError::BadRequest(hint));
+        return Err(ServiceError::BadRequest(hint));
     }
 
-    let res = web::block(move || problem::delete(
-        id,
-        pool,
-    )).await.map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res = web::block(move || problem::delete(id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

@@ -1,10 +1,10 @@
-use std::time::SystemTime;
-use actix_web::web;
-use actix_web::client::Client;
 use crate::errors::ServiceResult;
-use crate::statics::JUDGE_SERVER_INFOS;
+use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
 use crate::models::judge_servers::JudgeServerInfo;
-use crate::judge_actor::{ JudgeActorAddr, handler::StartJudge };
+use crate::statics::JUDGE_SERVER_INFOS;
+use actix_web::client::Client;
+use actix_web::web;
+use std::time::SystemTime;
 
 pub async fn record_server_info(
     judger_version: String,
@@ -14,15 +14,15 @@ pub async fn record_server_info(
     cpu: f32,
     service_url: Option<String>,
     token: String,
-    judge_actor: web::Data<JudgeActorAddr>
+    judge_actor: web::Data<JudgeActorAddr>,
 ) -> ServiceResult<()> {
-    if !service_url.is_none()
-    {        
+    if !service_url.is_none() {
         let url = service_url.clone().unwrap();
         let task_number = {
             let lock = JUDGE_SERVER_INFOS.read().unwrap();
-            if lock.get(&url).is_none() { 0 } 
-            else { 
+            if lock.get(&url).is_none() {
+                0
+            } else {
                 let target = lock.get(&url).unwrap();
                 target.task_number
             }
@@ -39,7 +39,9 @@ pub async fn record_server_info(
             if !response.is_ok() {
                 info!("setting is_deprecated to true");
                 true
-            } else { false }
+            } else {
+                false
+            }
         };
 
         let now = SystemTime::now();

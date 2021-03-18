@@ -1,8 +1,8 @@
+use actix_web::error::BlockingError;
 use actix_web::{error::ResponseError, HttpResponse};
 use diesel::result::Error as DBError;
-use std::io::Error as IOError;
-use actix_web::error::BlockingError;
 use std::convert::From;
+use std::io::Error as IOError;
 use thiserror::Error;
 
 #[derive(Debug, Error, Serialize)]
@@ -63,11 +63,12 @@ impl From<IOError> for ServiceError {
             std::io::ErrorKind::NotFound => {
                 let message = "An entity was not found, often a file.".to_string();
                 ServiceError::BadRequest(message)
-            },
+            }
             _ => {
-                let message = "Something went wrong with file analysis, please check your format.".to_string();
+                let message = "Something went wrong with file analysis, please check your format."
+                    .to_string();
                 ServiceError::BadRequest(message)
-            },
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 use super::languages::*;
-use uuid::Uuid;
-use chrono::NaiveDateTime;
 use crate::schema::submissions;
+use chrono::NaiveDateTime;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestCase {
@@ -115,26 +115,36 @@ impl From<RawJudgeResult> for JudgeResult {
         let mut is_accepted = true;
         let raw_details: Option<Vec<RawJudgeResultData>> = if raw.err.is_none() {
             Some(serde_json::from_value::<Vec<RawJudgeResultData>>(raw.data.clone()).unwrap())
-        } else { None };
+        } else {
+            None
+        };
 
         let details: Option<Vec<JudgeResultData>> = if raw_details.is_some() {
             let mut tmp = Vec::new();
             for raw_detail in raw_details.unwrap() {
-                if raw_detail.result != 0 { is_accepted = false; }
+                if raw_detail.result != 0 {
+                    is_accepted = false;
+                }
                 tmp.push(JudgeResultData::from(raw_detail))
             }
             Some(tmp)
-        } else { None };
-        
+        } else {
+            None
+        };
+
         Self {
             err: raw.err.clone(),
             err_reason: if raw.err.is_some() {
                 Some(serde_json::from_value::<String>(raw.data.clone()).unwrap())
-            } else { None },
+            } else {
+                None
+            },
             is_accepted: if raw.err.is_none() {
                 Some(is_accepted)
-            } else { None },
-            details: details
+            } else {
+                None
+            },
+            details: details,
         }
     }
 }
@@ -190,9 +200,11 @@ impl From<RawSubmission> for Submission {
             region: raw.region,
             state: raw.state,
             settings: serde_json::from_str::<JudgeSettings>(&raw.settings).unwrap(),
-            result: if raw.result.is_some() { 
-                Some(serde_json::from_str::<JudgeResult>(&raw.result.unwrap()).unwrap()) 
-            } else { None },
+            result: if raw.result.is_some() {
+                Some(serde_json::from_str::<JudgeResult>(&raw.result.unwrap()).unwrap())
+            } else {
+                None
+            },
             submit_time: raw.submit_time,
             is_accepted: raw.is_accepted,
             finish_time: raw.finish_time,

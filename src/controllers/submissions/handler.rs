@@ -1,9 +1,9 @@
-use actix_web::{web, HttpResponse, get, post, put};
+use crate::database::{db_connection, Pool};
 use crate::errors::ServiceError;
-use crate::database::{ db_connection, Pool };
-use crate::services::submission;
-use crate::models::users::LoggedUser;
 use crate::judge_actor::JudgeActorAddr;
+use crate::models::users::LoggedUser;
+use crate::services::submission;
+use actix_web::{get, post, put, web, HttpResponse};
 use uuid::Uuid;
 
 #[derive(Deserialize)]
@@ -22,17 +22,23 @@ pub async fn create(
     judge_actor: web::Data<JudgeActorAddr>,
 ) -> Result<HttpResponse, ServiceError> {
     info!("{:?}", logged_user.0);
-    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
 
-    let res = web::block(move || submission::create(
-        body.region.clone(),
-        body.problem_id,
-        logged_user.0.unwrap().id,
-        body.src.clone(),
-        body.language.clone(),
-        pool,
-        judge_actor,
-    )).await.map_err(|e| {
+    let res = web::block(move || {
+        submission::create(
+            body.region.clone(),
+            body.problem_id,
+            logged_user.0.unwrap().id,
+            body.src.clone(),
+            body.language.clone(),
+            pool,
+            judge_actor,
+        )
+    })
+    .await
+    .map_err(|e| {
         eprintln!("{}", e);
         e
     })?;
@@ -46,7 +52,9 @@ pub async fn get(
     logged_user: LoggedUser,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
     let cur_user = logged_user.0.unwrap();
 
     let conn = &db_connection(&pool)?;
@@ -61,16 +69,15 @@ pub async fn get(
 
     if cur_user.id != user_id && cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
-        return  Err(ServiceError::BadRequest(hint));
+        return Err(ServiceError::BadRequest(hint));
     }
 
-    let res = web::block(move || submission::get(
-        submission_id,
-        pool,
-    )).await.map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res = web::block(move || submission::get(submission_id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

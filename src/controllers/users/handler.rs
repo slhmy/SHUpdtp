@@ -1,9 +1,9 @@
-use actix_web::{web, HttpResponse, get, post, put};
-use actix_identity::Identity;
-use crate::errors::ServiceError;
 use crate::database::Pool;
-use crate::services::user;
+use crate::errors::ServiceError;
 use crate::models::users::LoggedUser;
+use crate::services::user;
+use actix_identity::Identity;
+use actix_web::{get, post, put, web, HttpResponse};
 
 #[derive(Deserialize)]
 pub struct GetUserListParams {
@@ -21,16 +21,20 @@ pub async fn get_list(
     query: web::Query<GetUserListParams>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let res = web::block(move || user::get_list(
-        query.id_filter,
-        query.account_filter.clone(),
-        query.mobile_filter.clone(),
-        query.role_filter.clone(),
-        query.id_order.clone(),
-        query.limit,
-        query.offset,
-        pool
-    )).await.map_err(|e| {
+    let res = web::block(move || {
+        user::get_list(
+            query.id_filter,
+            query.account_filter.clone(),
+            query.mobile_filter.clone(),
+            query.role_filter.clone(),
+            query.id_order.clone(),
+            query.limit,
+            query.offset,
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
         eprintln!("{}", e);
         e
     })?;
@@ -51,13 +55,17 @@ pub async fn create(
     body: web::Json<CreateUserBody>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let res = web::block(move || user::create(
-        body.account.clone(),
-        body.password.clone(),
-        body.mobile.clone(),
-        body.role.clone(),
-        pool
-    )).await.map_err(|e| {
+    let res = web::block(move || {
+        user::create(
+            body.account.clone(),
+            body.password.clone(),
+            body.mobile.clone(),
+            body.role.clone(),
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
         eprintln!("{}", e);
         e
     })?;
@@ -70,10 +78,7 @@ pub async fn get(
     web::Path(id): web::Path<i32>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let res = web::block(move || user::get(
-        id,
-        pool
-    )).await.map_err(|e| {
+    let res = web::block(move || user::get(id, pool)).await.map_err(|e| {
         eprintln!("{}", e);
         e
     })?;
@@ -96,21 +101,27 @@ pub async fn update(
     logged_user: LoggedUser,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
     let cur_user = logged_user.0.unwrap();
     if cur_user.id != id && cur_user.role != "sup" && cur_user.role != "admin" {
         let hint = "No permission.".to_string();
-        return  Err(ServiceError::BadRequest(hint));
+        return Err(ServiceError::BadRequest(hint));
     }
 
-    let res = web::block(move || user::update(
-        id,
-        body.new_account.clone(),
-        body.new_password.clone(),
-        body.new_mobile.clone(),
-        body.new_role.clone(),
-        pool,
-    )).await.map_err(|e| {
+    let res = web::block(move || {
+        user::update(
+            id,
+            body.new_account.clone(),
+            body.new_password.clone(),
+            body.new_mobile.clone(),
+            body.new_role.clone(),
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
         eprintln!("{}", e);
         e
     })?;
@@ -130,17 +141,14 @@ pub async fn login(
     identity: Identity,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let res = web::block(move || user::login(
-        body.account.clone(), 
-        body.password.clone(), 
-        pool
-    )).await.map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
-    
-    let user_string = serde_json::to_string(&res)
-        .map_err(|_| ServiceError::InternalServerError)?;
+    let res = web::block(move || user::login(body.account.clone(), body.password.clone(), pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    let user_string = serde_json::to_string(&res).map_err(|_| ServiceError::InternalServerError)?;
     info!("user_string={}", user_string);
     identity.remember(user_string);
     Ok(HttpResponse::Ok().json(res))
@@ -153,11 +161,12 @@ pub fn logout(identity: Identity) -> HttpResponse {
 }
 
 #[get("/me")]
-pub async fn me(
-    logged_user: LoggedUser,
-) -> Result<HttpResponse, ServiceError> {
-    if let Some(res) = logged_user.0 { Ok(HttpResponse::Ok().json(&res)) }
-    else { Err(ServiceError::Unauthorized) }
+pub async fn me(logged_user: LoggedUser) -> Result<HttpResponse, ServiceError> {
+    if let Some(res) = logged_user.0 {
+        Ok(HttpResponse::Ok().json(&res))
+    } else {
+        Err(ServiceError::Unauthorized)
+    }
 }
 
 #[derive(Deserialize)]
@@ -170,16 +179,17 @@ pub async fn get_permitted_methods(
     query: web::Query<GetPermittedMethodsParams>,
     logged_user: LoggedUser,
 ) -> Result<HttpResponse, ServiceError> {
-    if logged_user.0.is_none() { return Err(ServiceError::Unauthorized); }
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
     let cur_user = logged_user.0.unwrap();
 
-    let res = web::block(move || user::get_permitted_methods(
-        cur_user.role,
-        query.path.clone(),
-    )).await.map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res = web::block(move || user::get_permitted_methods(cur_user.role, query.path.clone()))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

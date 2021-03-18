@@ -1,5 +1,5 @@
-use crate::schema::*;
 use super::submissions;
+use crate::schema::*;
 use chrono::*;
 use uuid::Uuid;
 

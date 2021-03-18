@@ -8,6 +8,6 @@ pub fn route(cfg: &mut web::ServiceConfig) {
             .service(handler::batch_create)
             .service(handler::get_list)
             .service(handler::get)
-            .service(handler::delete)
+            .service(handler::delete),
     );
 }

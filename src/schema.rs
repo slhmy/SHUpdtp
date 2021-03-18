@@ -58,11 +58,4 @@ table! {
     }
 }
 
-allow_tables_to_appear_in_same_query!(
-    problem_sets,
-    problems,
-    regions,
-    samples,
-    submissions,
-    users,
-);
+allow_tables_to_appear_in_same_query!(problem_sets, problems, regions, samples, submissions, users,);

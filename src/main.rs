@@ -1,23 +1,27 @@
-#[macro_use] extern crate serde_derive;
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate diesel;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate lazy_static;
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate log;
 
 mod cli_args;
-mod errors;
-mod database;
-mod schema;
-mod models;
-mod services;
 mod controllers;
+mod database;
+mod errors;
 mod judge_actor;
+mod models;
+mod schema;
+mod services;
 mod statics;
 mod utils;
 
-use actix_web::middleware::Logger;
-use actix_web::{App, HttpResponse, HttpServer};
 use actix_cors::Cors;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
+use actix_web::middleware::Logger;
+use actix_web::{App, HttpResponse, HttpServer};
 
 #[actix_web::get("/")]
 async fn hello() -> impl actix_web::Responder {
@@ -48,7 +52,9 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
-            .data(judge_actor::JudgeActorAddr { addr: judge_actor_addr.clone() })
+            .data(judge_actor::JudgeActorAddr {
+                addr: judge_actor_addr.clone(),
+            })
             .wrap(Logger::default())
             .wrap(Cors::permissive())
             .wrap(IdentityService::new(

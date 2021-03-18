@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompileConfig {
-    pub src_name: String, 
+    pub src_name: String,
     pub exe_name: String,
     pub max_cpu_time: i32,
     pub max_real_time: i32,
@@ -40,7 +40,11 @@ pub struct SpjCompileConfig {
 }
 
 fn default_env() -> Vec<String> {
-    vec!["LANG=en_US.UTF-8".to_owned(), "LANGUAGE=en_US:en".to_owned(), "LC_ALL=en_US.UTF-8".to_owned()]
+    vec![
+        "LANG=en_US.UTF-8".to_owned(),
+        "LANGUAGE=en_US:en".to_owned(),
+        "LC_ALL=en_US.UTF-8".to_owned(),
+    ]
 }
 
 fn c_lang_config() -> LanguageConfig {
@@ -77,7 +81,7 @@ pub fn spj_config() -> SpjConfig {
     SpjConfig {
         exe_name: "spj-{spj_version}".to_owned(),
         command: "{exe_path} {in_file_path} {user_out_file_path}".to_owned(),
-        seccomp_rule: "c_cpp".to_owned()
+        seccomp_rule: "c_cpp".to_owned(),
     }
 }
 
@@ -134,7 +138,7 @@ fn py2_lang_config() -> LanguageConfig {
             seccomp_rule: Some("general".to_owned()),
             env: default_env(),
             memory_limit_check_only: 0,
-        }
+        },
     }
 }
 
@@ -157,7 +161,7 @@ fn py3_lang_config() -> LanguageConfig {
                 default_env
             },
             memory_limit_check_only: 0,
-        }
+        },
     }
 }
 

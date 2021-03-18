@@ -1,14 +1,14 @@
+use crate::database::{db_connection, Pool};
+use crate::errors::ServiceResult;
+use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
+use crate::models::*;
+use crate::statics::WAITING_QUEUE;
+use crate::utils::get_cur_naive_date_time;
 use actix_web::web;
 use diesel::prelude::*;
 use std::fs::File;
 use std::io::prelude::*;
 use uuid::Uuid;
-use crate::errors::{ ServiceResult };
-use crate::database::{ db_connection, Pool };
-use crate::models::*;
-use crate::utils::get_cur_naive_date_time;
-use crate::statics::WAITING_QUEUE;
-use crate::judge_actor::{ JudgeActorAddr, handler::StartJudge };
 
 pub fn create(
     region: Option<String>,
@@ -18,16 +18,17 @@ pub fn create(
     language: String,
     pool: web::Data<Pool>,
     judge_actor: web::Data<JudgeActorAddr>,
-) -> ServiceResult<Uuid>
-{
+) -> ServiceResult<Uuid> {
     let id = Uuid::new_v4();
     let language_config = languages::get_lang_config(&language);
 
     let conn = &db_connection(&pool)?;
-    use crate::schema::submissions as submissions_schema;
     use crate::schema::problems as problems_schema;
+    use crate::schema::submissions as submissions_schema;
 
-    let raw_problem: problems::RawProblem = problems_schema::table.filter(problems_schema::id.eq(problem_id)).first(conn)?;
+    let raw_problem: problems::RawProblem = problems_schema::table
+        .filter(problems_schema::id.eq(problem_id))
+        .first(conn)?;
     let problem = problems::Problem::from(raw_problem);
     let mut spj_src = None;
     if problem.settings.is_spj {
@@ -40,21 +41,29 @@ pub fn create(
     let settings = submissions::JudgeSettings {
         language_config: language_config,
         src: src,
-        max_cpu_time: if &language == "c" || &language == "cpp" { 
-            problem.settings.high_performance_max_cpu_time 
-        } else { problem.settings.other_max_cpu_time },
+        max_cpu_time: if &language == "c" || &language == "cpp" {
+            problem.settings.high_performance_max_cpu_time
+        } else {
+            problem.settings.other_max_cpu_time
+        },
         max_memory: if &language == "c" || &language == "cpp" {
             problem.settings.high_performance_max_memory
-        } else { problem.settings.other_max_memory },
+        } else {
+            problem.settings.other_max_memory
+        },
         test_case_id: Some(problem.id.to_string()),
         test_case: None,
         spj_version: Some("1".to_owned()),
         spj_config: if problem.settings.is_spj {
             Some(languages::spj_config())
-        } else { None },
+        } else {
+            None
+        },
         spj_compile_config: if problem.settings.is_spj {
             Some(languages::spj_compile_config())
-        } else { None },
+        } else {
+            None
+        },
         spj_src: spj_src,
         output: !problem.settings.opaque_output,
     };
@@ -72,7 +81,8 @@ pub fn create(
             result: None,
             submit_time: get_cur_naive_date_time(),
             is_accepted: None,
-        }).execute(conn)?;
+        })
+        .execute(conn)?;
 
     {
         let mut lock = WAITING_QUEUE.write().unwrap();
@@ -84,10 +94,7 @@ pub fn create(
     Ok(id)
 }
 
-pub fn get(
-    id: Uuid,
-    pool: web::Data<Pool>,
-) -> ServiceResult<submissions::Submission> {
+pub fn get(id: Uuid, pool: web::Data<Pool>) -> ServiceResult<submissions::Submission> {
     let conn = &db_connection(&pool)?;
 
     use crate::schema::submissions as submissions_schema;

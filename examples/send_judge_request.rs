@@ -1,14 +1,15 @@
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 
-use actix_web::client::Client;
 use actix_http::Error;
+use actix_web::client::Client;
 use std::io;
-use std::str; 
+use std::str;
 use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompileConfig {
-    pub src_name: String, 
+    pub src_name: String,
     pub exe_name: String,
     pub max_cpu_time: i32,
     pub max_real_time: i32,

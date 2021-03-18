@@ -1,8 +1,8 @@
 use crate::schema::*;
-use shrinkwraprs::Shrinkwrap;
-use actix_web::{FromRequest, Error, HttpRequest};
-use actix_web::dev::Payload;
 use actix_identity::RequestIdentity;
+use actix_web::dev::Payload;
+use actix_web::{Error, FromRequest, HttpRequest};
+use shrinkwraprs::Shrinkwrap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
 pub struct User {
@@ -30,7 +30,7 @@ pub struct OutUser {
     pub account: String,
     pub mobile: Option<String>,
     pub role: String,
-} 
+}
 
 impl From<User> for OutUser {
     fn from(user: User) -> Self {
@@ -38,13 +38,13 @@ impl From<User> for OutUser {
             id: user.id,
             account: user.account,
             mobile: user.mobile,
-            role: user.role
+            role: user.role,
         }
     }
 }
 
 #[derive(AsChangeset)]
-#[table_name="users"]
+#[table_name = "users"]
 pub struct UserForm {
     pub salt: Option<String>,
     pub hash: Option<Vec<u8>>,
@@ -66,7 +66,7 @@ impl From<User> for SlimUser {
     fn from(user: User) -> Self {
         Self {
             id: user.id,
-            role: user.role
+            role: user.role,
         }
     }
 }

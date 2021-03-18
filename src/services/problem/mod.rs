@@ -1,18 +1,18 @@
 mod utils;
 
+use crate::database::{db_connection, Pool};
 use crate::errors::ServiceResult;
-use crate::database::{ db_connection, Pool };
+use crate::models::problems::*;
 use actix_web::web;
 use diesel::prelude::*;
-use uuid::Uuid;
 use std::fs;
 use std::io::prelude::*;
 use std::process::Command;
-use crate::models::problems::*;
+use uuid::Uuid;
 
 pub fn batch_create(
     zip_buf: &[u8],
-    pool: web::Data<Pool>
+    pool: web::Data<Pool>,
 ) -> ServiceResult<Vec<CreateProblemsResult>> {
     let tmp_folder = String::from("data/tmp/") + &Uuid::new_v4().to_hyphenated().to_string();
     let file_path = tmp_folder.clone() + "/raw.zip";
@@ -33,15 +33,13 @@ pub fn batch_create(
     for entry in fs::read_dir(tmp_folder.clone())? {
         let dir = entry?;
 
-        match utils::read_insertable_problem(&dir.path()
-            .into_os_string()
-            .into_string().unwrap()) {
+        match utils::read_insertable_problem(&dir.path().into_os_string().into_string().unwrap()) {
             Ok(insertable_problem) => {
                 let mut target_problem = insertable_problem.clone();
-                let mut settings: ProblemSettings = serde_json::from_str(&insertable_problem.settings).unwrap();
-                match utils::prepare_test_cases(&(dir.path()
-                    .into_os_string()
-                    .into_string().unwrap() + "/TestCases"),
+                let mut settings: ProblemSettings =
+                    serde_json::from_str(&insertable_problem.settings).unwrap();
+                match utils::prepare_test_cases(
+                    &(dir.path().into_os_string().into_string().unwrap() + "/TestCases"),
                     settings.is_spj,
                 ) {
                     Ok(test_case_count) => {
@@ -50,10 +48,12 @@ pub fn batch_create(
                         info!("{:?}", target_problem);
 
                         let conn = &db_connection(&pool)?;
-                        
+
                         use crate::schema::problems as problems_schema;
                         match diesel::insert_into(problems_schema::table)
-                            .values(&target_problem.clone()).execute(conn) {
+                            .values(&target_problem.clone())
+                            .execute(conn)
+                        {
                             Ok(_) => {
                                 let id: i32 = problems_schema::table
                                     .filter(problems_schema::title.eq(target_problem.title))
@@ -62,10 +62,10 @@ pub fn batch_create(
 
                                 fs::remove_dir_all(format!("data/test_cases/{}", id)).unwrap_or({});
 
-                                fs::rename(&(dir.path()
-                                    .into_os_string()
-                                    .into_string().unwrap() + "/TestCases"),
-                                    format!("data/test_cases/{}", id)
+                                fs::rename(
+                                    &(dir.path().into_os_string().into_string().unwrap()
+                                        + "/TestCases"),
+                                    format!("data/test_cases/{}", id),
                                 )?;
 
                                 res.push(CreateProblemsResult {
@@ -73,14 +73,18 @@ pub fn batch_create(
                                     is_success: true,
                                     id: Some(id),
                                 });
-                            },
+                            }
                             Err(_) => {
                                 let max_id: i32 = problems_schema::table
                                     .select(problems_schema::id)
                                     .order(problems_schema::id.desc())
                                     .first(conn)?;
 
-                                diesel::sql_query(format!("ALTER SEQUENCE problems_id_seq RESTART WITH {}", max_id+1)).execute(conn)?;
+                                diesel::sql_query(format!(
+                                    "ALTER SEQUENCE problems_id_seq RESTART WITH {}",
+                                    max_id + 1
+                                ))
+                                .execute(conn)?;
 
                                 res.push(CreateProblemsResult {
                                     title: dir.file_name().to_str().unwrap().to_owned(),
@@ -88,8 +92,8 @@ pub fn batch_create(
                                     id: None,
                                 });
                             }
-                        }                    
-                    },
+                        }
+                    }
                     Err(_) => {
                         res.push(CreateProblemsResult {
                             title: dir.file_name().to_str().unwrap().to_owned(),
@@ -98,7 +102,7 @@ pub fn batch_create(
                         });
                     }
                 }
-            },
+            }
             Err(_) => {
                 res.push(CreateProblemsResult {
                     title: dir.file_name().to_str().unwrap().to_owned(),
@@ -123,18 +127,27 @@ pub fn get_list(
     difficulty_order: Option<bool>,
     limit: i32,
     offset: i32,
-    pool: web::Data<Pool>
-) -> ServiceResult<Vec::<SlimProblem>> {
-    let title_filter = if title_filter.is_none() { None } else {
+    pool: web::Data<Pool>,
+) -> ServiceResult<Vec<SlimProblem>> {
+    let title_filter = if title_filter.is_none() {
+        None
+    } else {
         Some(String::from("%") + &title_filter.unwrap().as_str().replace(" ", "%") + "%")
     };
 
     let inner_tag_filter: Vec<String> = if tag_filter.is_some() {
-        if tag_filter.clone().unwrap().len() > 0 { tag_filter.unwrap() }
-        else { Vec::<String>::new() }
-    } else { Vec::<String>::new() };
+        if tag_filter.clone().unwrap().len() > 0 {
+            tag_filter.unwrap()
+        } else {
+            Vec::<String>::new()
+        }
+    } else {
+        Vec::<String>::new()
+    };
 
-    let (min_difficulty, max_difficulty) = if difficulty_filter.is_none() { (0.0, 10.0) } else {
+    let (min_difficulty, max_difficulty) = if difficulty_filter.is_none() {
+        (0.0, 10.0)
+    } else {
         match difficulty_filter.unwrap().as_str() {
             "Navie" => (0.0, 2.5),
             "Easy" => (2.5, 5.0),
@@ -148,20 +161,34 @@ pub fn get_list(
 
     use crate::schema::problems as problems_schema;
     let target = problems_schema::table
-        .filter(problems_schema::id.nullable().eq(id_filter).or(id_filter.is_none()))
-        .filter(problems_schema::tags.overlaps_with(inner_tag_filter.clone()).or(inner_tag_filter.is_empty()))
-        .filter(problems_schema::title.nullable().like(title_filter.clone()).or(title_filter.is_none()))
+        .filter(
+            problems_schema::id
+                .nullable()
+                .eq(id_filter)
+                .or(id_filter.is_none()),
+        )
+        .filter(
+            problems_schema::tags
+                .overlaps_with(inner_tag_filter.clone())
+                .or(inner_tag_filter.is_empty()),
+        )
+        .filter(
+            problems_schema::title
+                .nullable()
+                .like(title_filter.clone())
+                .or(title_filter.is_none()),
+        )
         .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty))
         .limit(limit.into())
         .offset(offset.into());
 
     let problems: Vec<RawProblem> = match id_order {
-        None => {
-            match difficulty_order {
-                None => target.load(conn)?,
-                Some(true) => target.order(problems_schema::difficulty.asc()).load(conn)?,
-                Some(false) => target.order(problems_schema::difficulty.desc()).load(conn)?,
-            }
+        None => match difficulty_order {
+            None => target.load(conn)?,
+            Some(true) => target.order(problems_schema::difficulty.asc()).load(conn)?,
+            Some(false) => target
+                .order(problems_schema::difficulty.desc())
+                .load(conn)?,
         },
         Some(true) => target.order(problems_schema::id.asc()).load(conn)?,
         Some(false) => target.order(problems_schema::id.desc()).load(conn)?,
@@ -178,10 +205,7 @@ pub fn get_list(
     Ok(out_problems)
 }
 
-pub fn get(
-    id: i32,
-    pool: web::Data<Pool>,
-) -> ServiceResult<Problem> {
+pub fn get(id: i32, pool: web::Data<Pool>) -> ServiceResult<Problem> {
     let conn = &db_connection(&pool)?;
 
     use crate::schema::problems as problems_schema;
@@ -193,17 +217,12 @@ pub fn get(
     Ok(Problem::from(problem))
 }
 
-pub fn delete(
-    id: i32,
-    pool: web::Data<Pool>,
-) -> ServiceResult<()> {
+pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
 
     use crate::schema::problems as problems_schema;
 
-    diesel::delete(problems_schema::table
-        .filter(problems_schema::id.eq(id)))
-        .execute(conn)?;
+    diesel::delete(problems_schema::table.filter(problems_schema::id.eq(id))).execute(conn)?;
 
     fs::remove_dir_all(&format!("data/test_cases/{}", id))?;
 
@@ -212,7 +231,11 @@ pub fn delete(
         .order(problems_schema::id.desc())
         .first(conn)?;
 
-    diesel::sql_query(format!("ALTER SEQUENCE problems_id_seq RESTART WITH {}", max_id+1)).execute(conn)?;
+    diesel::sql_query(format!(
+        "ALTER SEQUENCE problems_id_seq RESTART WITH {}",
+        max_id + 1
+    ))
+    .execute(conn)?;
 
     Ok(())
 }

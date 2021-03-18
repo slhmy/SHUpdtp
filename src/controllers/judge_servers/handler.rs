@@ -1,7 +1,7 @@
-use actix_web::{web, HttpResponse, HttpRequest, get, post, put, delete};
 use crate::errors::ServiceError;
-use crate::services::judge_server::*;
 use crate::judge_actor::JudgeActorAddr;
+use crate::services::judge_server::*;
+use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct HeartbeatBody {
@@ -10,7 +10,7 @@ pub struct HeartbeatBody {
     pub cpu_core: i32,
     pub memory: f32,
     pub cpu: f32,
-    pub service_url: Option<String>
+    pub service_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -23,10 +23,15 @@ struct HeartbeatResponse {
 pub async fn handle_heartbeat(
     body: web::Json<HeartbeatBody>,
     req: HttpRequest,
-    judge_actor: web::Data<JudgeActorAddr>
+    judge_actor: web::Data<JudgeActorAddr>,
 ) -> Result<HttpResponse, ServiceError> {
-    let token = req.headers().get("x-judge-server-token").unwrap()
-        .to_str().unwrap().to_string();
+    let token = req
+        .headers()
+        .get("x-judge-server-token")
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
     record_server_info(
         body.judger_version.clone(),
@@ -37,16 +42,14 @@ pub async fn handle_heartbeat(
         body.service_url.clone(),
         token.clone(),
         judge_actor,
-    ).await?;
-
-    Ok(
-        HttpResponse::Ok()
-            .set_header("X-Judge-Server-Token", token)
-            .set_header("Content-Type", "application/json")
-            .json(HeartbeatResponse {
-                data: "success".to_owned(),
-                error: None,
-            }
-        )
     )
+    .await?;
+
+    Ok(HttpResponse::Ok()
+        .set_header("X-Judge-Server-Token", token)
+        .set_header("Content-Type", "application/json")
+        .json(HeartbeatResponse {
+            data: "success".to_owned(),
+            error: None,
+        }))
 }
