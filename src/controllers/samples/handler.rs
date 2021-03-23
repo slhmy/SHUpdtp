@@ -49,6 +49,7 @@ pub async fn create(
 #[derive(Deserialize)]
 pub struct GetSampleListParams {
     description_filter: Option<String>,
+    problem_id_filter: Option<i32>,
     limit: i32,
     offset: i32,
 }
@@ -72,6 +73,7 @@ pub async fn get_list(
     let res = web::block(move || {
         sample::get_list(
             query.description_filter.clone(),
+            query.problem_id_filter.clone(),
             query.limit,
             query.offset,
             pool,

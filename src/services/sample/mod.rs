@@ -41,6 +41,7 @@ pub fn create(
 
 pub fn get_list(
     description_filter: Option<String>,
+    problem_id_filter: Option<i32>,
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
@@ -57,14 +58,20 @@ pub fn get_list(
     use crate::schema::submissions as submissions_schema;
 
     let raw: Vec<(samples::RawSample, submissions::RawSubmission)> = samples_schema::table
+        .inner_join(
+            submissions_schema::table.on(samples_schema::submission_id.eq(submissions_schema::id)),
+        )
         .filter(
             samples_schema::description
                 .nullable()
                 .like(description_filter.clone())
                 .or(description_filter.is_none()),
         )
-        .inner_join(
-            submissions_schema::table.on(samples_schema::submission_id.eq(submissions_schema::id)),
+        .filter(
+            submissions_schema::problem_id
+                .nullable()
+                .eq(problem_id_filter)
+                .or(problem_id_filter.is_none()),
         )
         .limit(limit.into())
         .offset(offset.into())
