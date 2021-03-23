@@ -56,12 +56,12 @@ pub fn update(
 ) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
 
-    let (new_salt, new_hash) = if new_password.is_none() {
-        (None, None)
-    } else {
+    let (new_salt, new_hash) = if let Some(inner_data) = new_password {
         let salt = utils::make_salt();
-        let hash = utils::make_hash(&new_password.unwrap(), &salt).to_vec();
+        let hash = utils::make_hash(&inner_data, &salt).to_vec();
         (Some(salt), Some(hash))
+    } else {
+        (None, None)
     };
 
     use crate::schema::users as users_schema;
@@ -88,16 +88,16 @@ pub fn get_list(
     offset: i32,
     pool: web::Data<Pool>,
 ) -> ServiceResult<Vec<OutUser>> {
-    let account_filter = if account_filter.is_none() {
-        None
+    let account_filter = if let Some(inner_data) = account_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &account_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
-    let mobile_filter = if mobile_filter.is_none() {
-        None
+    let mobile_filter = if let Some(inner_data) = mobile_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &mobile_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
     let conn = &db_connection(&pool)?;
@@ -173,11 +173,11 @@ pub fn get_permitted_methods(role: String, path: String) -> ServiceResult<Vec<St
     use crate::statics::AUTH_CONFIG;
     match AUTH_CONFIG.get(&path) {
         Some(config) => match role.as_str() {
-            "sup" => Ok(config.sup.clone().unwrap_or(vec![])),
-            "admin" => Ok(config.admin.clone().unwrap_or(vec![])),
-            "student" => Ok(config.student.clone().unwrap_or(vec![])),
-            "teacher" => Ok(config.teacher.clone().unwrap_or(vec![])),
-            _ => Ok(config.others.clone().unwrap_or(vec![])),
+            "sup" => Ok(config.sup.clone().unwrap_or_default()),
+            "admin" => Ok(config.admin.clone().unwrap_or_default()),
+            "student" => Ok(config.student.clone().unwrap_or_default()),
+            "teacher" => Ok(config.teacher.clone().unwrap_or_default()),
+            _ => Ok(config.others.clone().unwrap_or_default()),
         },
         None => {
             let hint = "Path not set in config.".to_string();
