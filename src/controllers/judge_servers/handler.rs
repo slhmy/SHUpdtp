@@ -1,6 +1,7 @@
 use crate::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::services::judge_server::*;
+use actix_identity::Identity;
 use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -52,4 +53,11 @@ pub async fn handle_heartbeat(
             data: "success".to_owned(),
             error: None,
         }))
+}
+
+#[get("/info")]
+pub async fn get_server_info(id: Identity) -> Result<HttpResponse, ServiceError> {
+    server_info(id)
+        .await
+        .map(|res| HttpResponse::Ok().json(&res))
 }
