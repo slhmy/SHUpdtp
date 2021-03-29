@@ -1,7 +1,7 @@
 mod utils;
 
 use crate::database::{db_connection, Pool};
-use crate::errors::ServiceResult;
+use crate::errors::{ServiceError, ServiceResult};
 use crate::models::problems::*;
 use actix_web::web;
 use diesel::prelude::*;
@@ -221,6 +221,32 @@ pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
 
     use crate::schema::problems as problems_schema;
+    use crate::schema::samples as samples_schema;
+    use crate::schema::submissions as submissions_schema;
+
+    if problems_schema::table
+        .filter(problems_schema::id.eq(id))
+        .select(problems_schema::is_released)
+        .first::<bool>(conn)?
+    {
+        let hint = "Problem is_released.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
+
+    // find related samples and delete them all
+    let submission_ids: Vec<Uuid> = samples_schema::table
+        .inner_join(
+            submissions_schema::table.on(samples_schema::submission_id.eq(submissions_schema::id)),
+        )
+        .filter(submissions_schema::problem_id.eq(id))
+        .select(samples_schema::submission_id)
+        .load(conn)?;
+    diesel::delete(
+        samples_schema::table.filter(samples_schema::submission_id.eq_any(submission_ids.clone())),
+    )
+    .execute(conn)?;
+    diesel::delete(submissions_schema::table.filter(submissions_schema::id.eq_any(submission_ids)))
+        .execute(conn)?;
 
     diesel::delete(problems_schema::table.filter(problems_schema::id.eq(id))).execute(conn)?;
 
