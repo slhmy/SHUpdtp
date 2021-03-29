@@ -45,6 +45,37 @@ pub async fn batch_create(
 }
 
 #[derive(Deserialize)]
+pub struct ChangeReleaseStateBody {
+    target_state: bool,
+}
+
+#[post("/{id}/change_release_state")]
+pub async fn change_release_state(
+    web::Path(id): web::Path<i32>,
+    body: web::Json<ChangeReleaseStateBody>,
+    logged_user: LoggedUser,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+    let cur_user = logged_user.0.unwrap();
+    if cur_user.role != "sup" && cur_user.role != "admin" {
+        let hint = "No permission.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
+
+    web::block(move || problem::change_release_state(id, body.target_state, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    Ok(HttpResponse::Ok().finish())
+}
+
+#[derive(Deserialize)]
 pub struct GetProblemListParams {
     id_filter: Option<i32>,
     title_filter: Option<String>,

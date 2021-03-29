@@ -118,6 +118,25 @@ pub fn batch_create(
     Ok(res)
 }
 
+pub fn change_release_state(
+    id: i32,
+    target_state: bool,
+    pool: web::Data<Pool>,
+) -> ServiceResult<()> {
+    if !target_state {
+        // do some check
+    }
+
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::problems as problems_schema;
+    diesel::update(problems_schema::table.filter(problems_schema::id.eq(id)))
+        .set(problems_schema::is_released.eq(target_state))
+        .execute(conn)?;
+
+    Ok(())
+}
+
 pub fn get_list(
     id_filter: Option<i32>,
     title_filter: Option<String>,
