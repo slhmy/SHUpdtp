@@ -59,9 +59,8 @@ impl Handler<StartJudge> for JudgeActor {
                 info!("sending request to {}", server_url);
                 {
                     let mut lock = JUDGE_SERVER_INFOS.write().unwrap();
-                    let mut server_info = lock.get(&server_url).unwrap().clone();
+                    let mut server_info = lock.get_mut(&server_url).unwrap();
                     server_info.task_number += 1;
-                    lock.insert(server_url.clone(), server_info);
                 }
                 let result_string =
                     run_judge_client(server_token, server_url.clone(), setting_string);
@@ -69,9 +68,8 @@ impl Handler<StartJudge> for JudgeActor {
 
                 {
                     let mut lock = JUDGE_SERVER_INFOS.write().unwrap();
-                    let mut server_info = lock.get(&server_url).unwrap().clone();
+                    let mut server_info = lock.get_mut(&server_url).unwrap();
                     server_info.task_number -= 1;
-                    lock.insert(server_url, server_info);
                 }
 
                 if result_string == String::from("") {
