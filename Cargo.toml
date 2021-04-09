@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 # Actor model
-actix = "0.10.0"
+actix = "0.11.1"
 
 # Web framework
 actix-web = "3"
