@@ -40,20 +40,20 @@ impl Handler<StartJudge> for JudgeActor {
             let cur_state = submissions_schema::table
                 .filter(submissions_schema::id.eq(task_uuid))
                 .select(submissions_schema::state)
-                .first::<String>(&self.0)
+                .first::<String>(&self.db_connection)
                 .expect("Error loading setting_data from submissions.");
 
             if cur_state == "Waiting".to_owned() {
                 let setting_string = submissions_schema::table
                     .filter(submissions_schema::id.eq(task_uuid))
                     .select(submissions_schema::settings)
-                    .first::<String>(&self.0)
+                    .first::<String>(&self.db_connection)
                     .expect("Error loading setting_data from submissions.");
 
                 let target = submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
                 diesel::update(target)
                     .set((submissions_schema::state.eq("Pending".to_owned()),))
-                    .execute(&self.0)
+                    .execute(&self.db_connection)
                     .expect("Error changing submissions's state to Pending.");
 
                 info!("sending request to {}", server_url);
@@ -77,7 +77,7 @@ impl Handler<StartJudge> for JudgeActor {
                         submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
                     diesel::update(target)
                         .set((submissions_schema::state.eq("Waiting".to_owned()),))
-                        .execute(&self.0)
+                        .execute(&self.db_connection)
                         .expect("Error changing submissions's state to Waiting.");
 
                     {
@@ -102,7 +102,7 @@ impl Handler<StartJudge> for JudgeActor {
                         submissions_schema::is_accepted.eq(result.is_accepted),
                         submissions_schema::finish_time.eq(get_cur_naive_date_time()),
                     ))
-                    .execute(&self.0)
+                    .execute(&self.db_connection)
                     .expect("Error changing submissions's data.");
             }
 
