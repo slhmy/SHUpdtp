@@ -41,6 +41,7 @@ async fn main() -> std::io::Result<()> {
     };
 
     let pool = database::pool::establish_connection(opt.clone());
+    let mongodb_client = mongodb::sync::Client::with_uri_str(&opt.mongodb_url).unwrap();
 
     let domain = opt.domain.clone();
     let cookie_secret_key = opt.auth_secret_key.clone();
@@ -51,6 +52,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .data(mongodb_client.clone())
             .data(pool.clone())
             .data(judge_actor::JudgeActorAddr {
                 addr: judge_actor_addr.clone(),
