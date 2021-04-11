@@ -6,6 +6,7 @@ use crate::statics::WAITING_QUEUE;
 use crate::utils::*;
 use actix::prelude::*;
 use diesel::prelude::*;
+use mongodb::bson::doc;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct StartJudge();
@@ -22,7 +23,7 @@ impl Handler<StartJudge> for JudgeActor {
 
         let mut queue_size = {
             let lock = WAITING_QUEUE.read().unwrap();
-            lock.len().clone()
+            lock.len()
         };
         info!("queue_size: {}", queue_size);
         while queue_size != 0 {
@@ -43,7 +44,7 @@ impl Handler<StartJudge> for JudgeActor {
                 .first::<String>(&self.db_connection)
                 .expect("Error loading setting_data from submissions.");
 
-            if cur_state == "Waiting".to_owned() {
+            if cur_state == *"Waiting" {
                 let setting_string = submissions_schema::table
                     .filter(submissions_schema::id.eq(task_uuid))
                     .select(submissions_schema::settings)
@@ -72,7 +73,7 @@ impl Handler<StartJudge> for JudgeActor {
                     server_info.task_number -= 1;
                 }
 
-                if result_string == String::from("") {
+                if result_string == *"" {
                     let target =
                         submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
                     diesel::update(target)
@@ -104,11 +105,101 @@ impl Handler<StartJudge> for JudgeActor {
                     ))
                     .execute(&self.db_connection)
                     .expect("Error changing submissions's data.");
+
+                let submission = submissions::Submission::from(
+                    submissions_schema::table
+                        .filter(submissions_schema::id.eq(task_uuid))
+                        .first::<submissions::RawSubmission>(&self.db_connection)
+                        .unwrap(),
+                );
+
+                // if not sample submission
+                if submission.region.is_some() {
+                    if self
+                        .mongodb_database
+                        .collection("submission_statistics")
+                        .find_one(
+                            doc! {
+                                "problem_id": submission.problem_id,
+                                "region": submission.region.clone().unwrap(),
+                            },
+                            None,
+                        )
+                        .unwrap()
+                        .is_none()
+                    {
+                        self.mongodb_database
+                            .collection("submission_statistics")
+                            .insert_one(
+                                doc! {
+                                    "problem_id": submission.problem_id,
+                                    "region": submission.region.clone().unwrap(),
+                                    "submit_times": 0,
+                                    "accept_times": 0,
+                                    "error_times": 0,
+                                    "avg_accept_real_time": 0,
+                                },
+                                None,
+                            )
+                            .unwrap();
+                    }
+                    if let Some(doc) = self
+                        .mongodb_database
+                        .collection("submission_statistics")
+                        .find_one(
+                            doc! {
+                                "problem_id": submission.problem_id,
+                                "region": submission.region.clone().unwrap(),
+                            },
+                            None,
+                        )
+                        .unwrap()
+                    {
+                        self.mongodb_database
+                            .collection("submission_statistics")
+                            .update_one(
+                                doc! {
+                                    "problem_id": submission.problem_id,
+                                    "region": submission.region.clone().unwrap(),
+                                },
+                                doc! {
+                                    "problem_id": submission.problem_id,
+                                    "region": submission.region.unwrap(),
+                                    "submit_times": doc.get("submit_times").unwrap().as_i32().unwrap() + 1,
+                                    "accept_times": doc.get("accept_times").unwrap().as_i32().unwrap()
+                                        + match submission.is_accepted {
+                                            Some(is_accepted) => {
+                                                if is_accepted { 1 } else { 0 }
+                                            },
+                                            None => 0
+                                        },
+                                    "error_times": doc.get("error_times").unwrap().as_i32().unwrap()
+                                        + match submission.is_accepted {
+                                            Some(_) => { 0 },
+                                            None => 1
+                                        },
+                                    "avg_accept_real_time": 
+                                        match submission.is_accepted {
+                                            Some(_) => {
+                                                let accept_times = doc.get("accept_times").unwrap().as_i32().unwrap();
+                                                (doc.get("avg_accept_real_time").unwrap().as_i32().unwrap()
+                                                * accept_times
+                                                + submission.result.unwrap().avg_real_time.unwrap())
+                                                / (accept_times + 1)
+                                            },
+                                            None => doc.get("avg_accept_real_time").unwrap().as_i32().unwrap()
+                                        }
+                                },
+                                None,
+                            )
+                            .unwrap();
+                    }
+                }
             }
 
             queue_size = {
                 let lock = WAITING_QUEUE.read().unwrap();
-                lock.len().clone()
+                lock.len()
             };
         }
 
