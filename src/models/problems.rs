@@ -99,6 +99,25 @@ impl From<RawProblem> for SlimProblem {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
+pub struct OutProblem {
+    pub id: i32,
+    pub info: ProblemInfo
+}
+
+impl From<RawProblem> for OutProblem {
+    fn from(raw: RawProblem) -> Self {
+        Self {
+            id: raw.id,
+            info: ProblemInfo {
+                title: raw.title,
+                tags: raw.tags,
+                difficulty: raw.difficulty,
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateProblemsResult {
     pub title: String,
