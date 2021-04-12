@@ -108,6 +108,7 @@ pub struct JudgeResult {
     pub err_reason: Option<String>,
     pub is_accepted: Option<bool>,
     pub details: Option<Vec<JudgeResultData>>,
+    pub avg_real_time: Option<i32>,
 }
 
 impl From<RawJudgeResult> for JudgeResult {
@@ -132,6 +133,17 @@ impl From<RawJudgeResult> for JudgeResult {
             None
         };
 
+        let avg_real_time: Option<i32> = if details.is_some() {
+            let mut total_real_time = 0;
+            let mut case_count = 0;
+            for detail in details.clone().unwrap() {
+                total_real_time += detail.real_time;
+            }
+            Some(total_real_time)
+        } else {
+            None
+        };
+
         Self {
             err: raw.err.clone(),
             err_reason: if raw.err.is_some() {
@@ -145,6 +157,7 @@ impl From<RawJudgeResult> for JudgeResult {
                 None
             },
             details: details,
+            avg_real_time: avg_real_time,
         }
     }
 }

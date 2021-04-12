@@ -52,6 +52,10 @@ impl From<DBError> for ServiceError {
                 let message = info.details().unwrap_or_else(|| info.message()).to_string();
                 ServiceError::BadRequest(message)
             }
+            diesel::result::Error::NotFound => {
+                let message = "Related Object not found".to_string();
+                ServiceError::BadRequest(message)
+            },
             _ => ServiceError::InternalServerError,
         }
     }
