@@ -1,5 +1,12 @@
 table! {
-    problem_sets (set_name, problem_id) {
+    problem_sets (name) {
+        name -> Text,
+        introduction -> Nullable<Text>,
+    }
+}
+
+table! {
+    problem_sets_columes (set_name, problem_id) {
         set_name -> Text,
         problem_id -> Int4,
     }
@@ -58,4 +65,14 @@ table! {
     }
 }
 
-allow_tables_to_appear_in_same_query!(problem_sets, problems, regions, samples, submissions, users,);
+joinable!(problem_sets_columes -> problem_sets (set_name));
+
+allow_tables_to_appear_in_same_query!(
+    problem_sets,
+    problem_sets_columes,
+    problems,
+    regions,
+    samples,
+    submissions,
+    users,
+);

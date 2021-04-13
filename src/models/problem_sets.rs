@@ -1,6 +1,8 @@
 use super::problems;
+use crate::schema::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Insertable)]
+#[table_name = "problem_sets"]
 pub struct ProblemSetInfo {
     pub name: String,
     pub introduction: Option<String>,
