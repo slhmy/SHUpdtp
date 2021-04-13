@@ -138,8 +138,9 @@ impl From<RawJudgeResult> for JudgeResult {
             let mut case_count = 0;
             for detail in details.clone().unwrap() {
                 total_real_time += detail.real_time;
+                case_count += 1;
             }
-            Some(total_real_time)
+            Some(total_real_time / case_count)
         } else {
             None
         };
