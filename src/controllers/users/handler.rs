@@ -3,7 +3,7 @@ use crate::errors::ServiceError;
 use crate::models::users::LoggedUser;
 use crate::services::user;
 use actix_identity::Identity;
-use actix_web::{get, post, put, web, HttpResponse};
+use actix_web::{delete, get, post, put, web, HttpResponse};
 
 #[derive(Deserialize)]
 pub struct GetUserListParams {
@@ -185,6 +185,31 @@ pub async fn get_permitted_methods(
     let cur_user = logged_user.0.unwrap();
 
     let res = web::block(move || user::get_permitted_methods(cur_user.role, query.path.clone()))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[delete("/{id}")]
+pub async fn delete(
+    web::Path(id): web::Path<i32>,
+    logged_user: LoggedUser,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+    let cur_user = logged_user.0.unwrap();
+    if cur_user.id != id && cur_user.role != "sup" && cur_user.role != "admin" {
+        let hint = "No permission.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
+
+    let res = web::block(move || user::delete(id, pool))
         .await
         .map_err(|e| {
             eprintln!("{}", e);
