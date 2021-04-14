@@ -107,8 +107,9 @@ pub struct JudgeResult {
     pub err: Option<String>,
     pub err_reason: Option<String>,
     pub is_accepted: Option<bool>,
+    pub max_time: Option<i32>,
+    pub max_memory: Option<i32>,
     pub details: Option<Vec<JudgeResultData>>,
-    pub avg_real_time: Option<i32>,
 }
 
 impl From<RawJudgeResult> for JudgeResult {
@@ -133,14 +134,30 @@ impl From<RawJudgeResult> for JudgeResult {
             None
         };
 
-        let avg_real_time: Option<i32> = if details.is_some() {
-            let mut total_real_time = 0;
-            let mut case_count = 0;
-            for detail in details.clone().unwrap() {
-                total_real_time += detail.real_time;
-                case_count += 1;
-            }
-            Some(total_real_time / case_count)
+        let max_time: Option<i32> = if details.is_some() {
+            Some(
+                details
+                    .clone()
+                    .unwrap()
+                    .iter()
+                    .map(|detail| detail.cpu_time)
+                    .max()
+                    .unwrap_or(0),
+            )
+        } else {
+            None
+        };
+
+        let max_memory: Option<i32> = if details.is_some() {
+            Some(
+                details
+                    .clone()
+                    .unwrap()
+                    .iter()
+                    .map(|detail| detail.memory)
+                    .max()
+                    .unwrap_or(0),
+            )
         } else {
             None
         };
@@ -157,8 +174,9 @@ impl From<RawJudgeResult> for JudgeResult {
             } else {
                 None
             },
+            max_time: max_time,
+            max_memory: max_memory,
             details: details,
-            avg_real_time: avg_real_time,
         }
     }
 }
@@ -175,6 +193,9 @@ pub struct RawSubmission {
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
     pub finish_time: Option<NaiveDateTime>,
+    pub max_time: Option<i32>,
+    pub max_memory: Option<i32>,
+    pub language: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Insertable, Queryable)]
@@ -189,6 +210,10 @@ pub struct InsertableSubmission {
     pub result: Option<String>,
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
+    pub finish_time: Option<NaiveDateTime>,
+    pub max_time: Option<i32>,
+    pub max_memory: Option<i32>,
+    pub language: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -203,6 +228,9 @@ pub struct Submission {
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
     pub finish_time: Option<NaiveDateTime>,
+    pub max_time: Option<i32>,
+    pub max_memory: Option<i32>,
+    pub language: Option<String>,
 }
 
 impl From<RawSubmission> for Submission {
@@ -222,6 +250,9 @@ impl From<RawSubmission> for Submission {
             submit_time: raw.submit_time,
             is_accepted: raw.is_accepted,
             finish_time: raw.finish_time,
+            max_time: raw.max_time,
+            max_memory: raw.max_memory,
+            language: raw.language,
         }
     }
 }

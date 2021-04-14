@@ -51,6 +51,9 @@ table! {
         submit_time -> Timestamp,
         is_accepted -> Nullable<Bool>,
         finish_time -> Nullable<Timestamp>,
+        max_time -> Nullable<Int4>,
+        max_memory -> Nullable<Int4>,
+        language -> Nullable<Text>,
     }
 }
 

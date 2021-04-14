@@ -102,6 +102,8 @@ impl Handler<StartJudge> for JudgeActor {
                         submissions_schema::result.eq(serde_json::to_string(&result).unwrap()),
                         submissions_schema::is_accepted.eq(result.is_accepted),
                         submissions_schema::finish_time.eq(get_cur_naive_date_time()),
+                        submissions_schema::max_time.eq(result.max_time),
+                        submissions_schema::max_memory.eq(result.max_memory),
                     ))
                     .execute(&self.db_connection)
                     .expect("Error changing submissions's data.");
@@ -137,7 +139,8 @@ impl Handler<StartJudge> for JudgeActor {
                                     "submit_times": 0,
                                     "accept_times": 0,
                                     "error_times": 0,
-                                    "avg_accept_real_time": 0,
+                                    "max_time": 0,
+                                    "max_memory": 0,
                                 },
                                 None,
                             )
@@ -178,16 +181,27 @@ impl Handler<StartJudge> for JudgeActor {
                                             Some(_) => { 0 },
                                             None => 1
                                         },
-                                    "avg_accept_real_time": 
+                                    "max_time": 
                                         match submission.is_accepted {
                                             Some(_) => {
                                                 let accept_times = doc.get("accept_times").unwrap().as_i32().unwrap();
-                                                (doc.get("avg_accept_real_time").unwrap().as_i32().unwrap()
+                                                (doc.get("max_time").unwrap().as_i32().unwrap()
                                                 * accept_times
-                                                + submission.result.unwrap().avg_real_time.unwrap())
+                                                + submission.max_time.unwrap())
                                                 / (accept_times + 1)
                                             },
-                                            None => doc.get("avg_accept_real_time").unwrap().as_i32().unwrap()
+                                            None => doc.get("max_time").unwrap().as_i32().unwrap()
+                                        },
+                                    "max_memory": 
+                                        match submission.is_accepted {
+                                            Some(_) => {
+                                                let accept_times = doc.get("accept_times").unwrap().as_i32().unwrap();
+                                                (doc.get("max_memory").unwrap().as_i32().unwrap()
+                                                * accept_times
+                                                + submission.max_memory.unwrap())
+                                                / (accept_times + 1)
+                                            },
+                                            None => doc.get("max_memory").unwrap().as_i32().unwrap()
                                         }
                                 },
                                 None,

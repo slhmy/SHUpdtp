@@ -26,18 +26,13 @@ pub async fn create(
         return Err(ServiceError::BadRequest(hint));
     }
 
-    let res = web::block(move || {
-        problem_set::create(
-            body.name.clone(),
-            body.introduction.clone(),
-            pool,
-        )
-    })
-    .await
-    .map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res =
+        web::block(move || problem_set::create(body.name.clone(), body.introduction.clone(), pool))
+            .await
+            .map_err(|e| {
+                eprintln!("{}", e);
+                e
+            })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

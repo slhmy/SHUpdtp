@@ -102,7 +102,7 @@ impl From<RawProblem> for SlimProblem {
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
 pub struct OutProblem {
     pub id: i32,
-    pub info: ProblemInfo
+    pub info: ProblemInfo,
 }
 
 impl From<RawProblem> for OutProblem {
@@ -113,7 +113,7 @@ impl From<RawProblem> for OutProblem {
                 title: raw.title,
                 tags: raw.tags,
                 difficulty: raw.difficulty,
-            }
+            },
         }
     }
 }

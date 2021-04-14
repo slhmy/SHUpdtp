@@ -81,6 +81,10 @@ pub fn create(
             result: None,
             submit_time: get_cur_naive_date_time(),
             is_accepted: None,
+            finish_time: None,
+            max_time: None,
+            max_memory: None,
+            language: Some(language),
         })
         .execute(conn)?;
 
