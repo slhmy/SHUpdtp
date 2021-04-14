@@ -190,36 +190,8 @@ pub fn get_permitted_methods(role: String, path: String) -> ServiceResult<Vec<St
 pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
 
-    use crate::schema::samples as samples_schema;
-    use crate::schema::submissions as submissions_schema;
     use crate::schema::users as users_schema;
-
-    let submission_ids: Vec<Uuid> = samples_schema::table
-        .inner_join(
-            submissions_schema::table.on(samples_schema::submission_id.eq(submissions_schema::id)),
-        )
-        .filter(submissions_schema::user_id.eq(id))
-        .select(samples_schema::submission_id)
-        .load(conn)?;
-    diesel::delete(
-        samples_schema::table.filter(samples_schema::submission_id.eq_any(submission_ids.clone())),
-    )
-    .execute(conn)?;
-    diesel::delete(submissions_schema::table.filter(submissions_schema::id.eq_any(submission_ids)))
-        .execute(conn)?;
-
     diesel::delete(users_schema::table.filter(users_schema::id.eq(id))).execute(conn)?;
-
-    let max_id: i32 = users_schema::table
-        .select(users_schema::id)
-        .order(users_schema::id.desc())
-        .first(conn)?;
-
-    diesel::sql_query(format!(
-        "ALTER SEQUENCE users_id_seq RESTART WITH {}",
-        max_id + 1
-    ))
-    .execute(conn)?;
 
     Ok(())
 }
