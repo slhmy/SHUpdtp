@@ -142,6 +142,7 @@ pub fn get_list(
     title_filter: Option<String>,
     tag_filter: Option<Vec<String>>,
     difficulty_filter: Option<String>,
+    release_filter: Option<bool>,
     id_order: Option<bool>,
     difficulty_order: Option<bool>,
     limit: i32,
@@ -196,6 +197,11 @@ pub fn get_list(
                 .nullable()
                 .like(title_filter.clone())
                 .or(title_filter.is_none()),
+        )
+        .filter(
+            problems_schema::is_released
+                .eq(release_filter.unwrap_or_default())
+                .or(release_filter.is_none()),
         )
         .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty))
         .limit(limit.into())
