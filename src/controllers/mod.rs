@@ -4,3 +4,4 @@ pub mod problems;
 pub mod samples;
 pub mod submissions;
 pub mod users;
+pub mod regions;

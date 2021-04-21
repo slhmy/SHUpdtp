@@ -22,6 +22,7 @@ table! {
     region_links (region) {
         region -> Text,
         problem_id -> Int4,
+        score -> Nullable<Int4>,
     }
 }
 
