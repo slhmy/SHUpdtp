@@ -6,6 +6,7 @@ use actix_web::{delete, get, post, put, web, HttpResponse};
 
 #[derive(Deserialize)]
 pub struct CreateProblemSetBody {
+    region: String,
     name: String,
     introduction: Option<String>,
 }
@@ -26,13 +27,19 @@ pub async fn create(
         return Err(ServiceError::BadRequest(hint));
     }
 
-    let res =
-        web::block(move || problem_set::create(body.name.clone(), body.introduction.clone(), pool))
-            .await
-            .map_err(|e| {
-                eprintln!("{}", e);
-                e
-            })?;
+    let res = web::block(move || {
+        problem_set::create(
+            body.region.clone(),
+            body.name.clone(),
+            body.introduction.clone(),
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

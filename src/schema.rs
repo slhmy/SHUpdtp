@@ -1,14 +1,8 @@
 table! {
-    problem_sets (name) {
+    problem_sets (region) {
+        region -> Text,
         name -> Text,
         introduction -> Nullable<Text>,
-    }
-}
-
-table! {
-    problem_sets_columes (set_name, problem_id) {
-        set_name -> Text,
-        problem_id -> Int4,
     }
 }
 
@@ -25,10 +19,16 @@ table! {
 }
 
 table! {
-    regions (name, type_) {
+    region_links (region) {
+        region -> Text,
+        problem_id -> Int4,
+    }
+}
+
+table! {
+    regions (name, self_type) {
         name -> Text,
-        #[sql_name = "type"]
-        type_ -> Text,
+        self_type -> Text,
     }
 }
 
@@ -68,12 +68,10 @@ table! {
     }
 }
 
-joinable!(problem_sets_columes -> problem_sets (set_name));
-
 allow_tables_to_appear_in_same_query!(
     problem_sets,
-    problem_sets_columes,
     problems,
+    region_links,
     regions,
     samples,
     submissions,
