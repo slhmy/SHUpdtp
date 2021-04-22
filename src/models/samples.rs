@@ -30,6 +30,7 @@ pub struct SlimSample {
     pub submission_state: String,
     pub is_accepted: Option<bool>,
     pub submit_time: NaiveDateTime,
+    pub err: Option<String>,
 }
 
 impl From<Sample> for SlimSample {
@@ -40,6 +41,7 @@ impl From<Sample> for SlimSample {
             submission_state: raw.submission.state,
             is_accepted: raw.submission.is_accepted,
             submit_time: raw.submission.submit_time,
+            err: raw.submission.err,
         }
     }
 }

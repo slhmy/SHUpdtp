@@ -104,6 +104,7 @@ impl Handler<StartJudge> for JudgeActor {
                         submissions_schema::finish_time.eq(get_cur_naive_date_time()),
                         submissions_schema::max_time.eq(result.max_time),
                         submissions_schema::max_memory.eq(result.max_memory),
+                        submissions_schema::err.eq(result.err),
                     ))
                     .execute(&self.db_connection)
                     .expect("Error changing submissions's data.");

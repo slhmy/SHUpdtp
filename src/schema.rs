@@ -55,6 +55,7 @@ table! {
         max_time -> Nullable<Int4>,
         max_memory -> Nullable<Int4>,
         language -> Nullable<Text>,
+        err -> Nullable<Text>,
     }
 }
 

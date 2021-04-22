@@ -196,6 +196,7 @@ pub struct RawSubmission {
     pub max_time: Option<i32>,
     pub max_memory: Option<i32>,
     pub language: Option<String>,
+    pub err: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Insertable, Queryable)]
@@ -214,6 +215,7 @@ pub struct InsertableSubmission {
     pub max_time: Option<i32>,
     pub max_memory: Option<i32>,
     pub language: Option<String>,
+    pub err: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -231,6 +233,7 @@ pub struct Submission {
     pub max_time: Option<i32>,
     pub max_memory: Option<i32>,
     pub language: Option<String>,
+    pub err: Option<String>,
 }
 
 impl From<RawSubmission> for Submission {
@@ -253,6 +256,7 @@ impl From<RawSubmission> for Submission {
             max_time: raw.max_time,
             max_memory: raw.max_memory,
             language: raw.language,
+            err: raw.err,
         }
     }
 }

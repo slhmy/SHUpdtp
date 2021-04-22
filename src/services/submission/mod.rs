@@ -85,6 +85,7 @@ pub fn create(
             max_time: None,
             max_memory: None,
             language: Some(language),
+            err: None,
         })
         .execute(conn)?;
 
