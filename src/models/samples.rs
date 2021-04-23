@@ -26,6 +26,8 @@ pub struct Sample {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlimSample {
     pub submission_id: Uuid,
+    pub problem_id: i32,
+    pub language: Option<String>,
     pub description: Option<String>,
     pub submission_state: String,
     pub is_accepted: Option<bool>,
@@ -37,6 +39,8 @@ impl From<Sample> for SlimSample {
     fn from(raw: Sample) -> Self {
         Self {
             submission_id: raw.submission_id,
+            problem_id: raw.submission.problem_id,
+            language: raw.submission.language,
             description: raw.description,
             submission_state: raw.submission.state,
             is_accepted: raw.submission.is_accepted,
