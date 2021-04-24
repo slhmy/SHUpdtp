@@ -93,14 +93,14 @@ pub struct GetProblemSetColumnListParams {
 }
 
 #[get("/{region}")]
-pub async fn get_column(
+pub async fn get_list(
     web::Path(region): web::Path<String>,
     query: web::Query<GetProblemSetColumnListParams>,
     pool: web::Data<Pool>,
     mongodb_database: web::Data<SyncMongo>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || {
-        problem_set::get_column(
+        problem_set::get_list(
             region,
             query.inner_id_filter,
             query.problem_id_filter,

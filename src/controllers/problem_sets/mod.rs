@@ -7,6 +7,6 @@ pub fn route(cfg: &mut web::ServiceConfig) {
         web::scope("/problem_sets")
             .service(handler::create)
             .service(handler::insert_problems)
-            .service(handler::get_column),
+            .service(handler::get_list),
     );
 }

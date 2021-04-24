@@ -3,6 +3,7 @@ use crate::errors::{ServiceError, ServiceResult};
 use crate::models::problem_sets;
 use crate::models::problem_sets::*;
 use crate::models::regions::*;
+use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
 
@@ -34,7 +35,7 @@ pub fn create(
     Ok(())
 }
 
-pub fn get_column(
+pub fn get_list(
     region: String,
     inner_id_filter: Option<i32>,
     problem_id_filter: Option<i32>,
@@ -48,7 +49,7 @@ pub fn get_column(
     offset: i32,
     pool: web::Data<Pool>,
     mongodb_database: web::Data<SyncMongo>,
-) -> ServiceResult<Vec<ProblemSetColumn>> {
+) -> ServiceResult<SizedList<ProblemSetColumn>> {
     let conn = &db_connection(&pool)?;
 
     use crate::schema::regions as regions_schema;
@@ -120,7 +121,11 @@ pub fn get_column(
                 .or(title_filter.is_none()),
         )
         .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty))
-        .limit(limit.into())
+        .limit(limit.into());
+
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let target = target
         .offset(offset.into())
         .select((
             region_links_schema::region,
@@ -159,5 +164,8 @@ pub fn get_column(
         res
     };
 
-    Ok(out_columns)
+    Ok(SizedList {
+        total: total,
+        list: out_columns,
+    })
 }

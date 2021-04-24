@@ -3,6 +3,7 @@ mod utils;
 use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::problems::*;
+use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
 use std::fs;
@@ -148,7 +149,7 @@ pub fn get_list(
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
-) -> ServiceResult<Vec<SlimProblem>> {
+) -> ServiceResult<SizedList<SlimProblem>> {
     let title_filter = if title_filter.is_none() {
         None
     } else {
@@ -203,7 +204,11 @@ pub fn get_list(
                 .eq(release_filter.unwrap_or_default())
                 .or(release_filter.is_none()),
         )
-        .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty))
+        .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty));
+    
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let target = target
         .limit(limit.into())
         .offset(offset.into());
 
@@ -227,7 +232,10 @@ pub fn get_list(
         res
     };
 
-    Ok(out_problems)
+    Ok(SizedList {
+        total: total,
+        list: out_problems,
+    })
 }
 
 pub fn get(id: i32, pool: web::Data<Pool>) -> ServiceResult<Problem> {

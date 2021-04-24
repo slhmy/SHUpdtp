@@ -3,6 +3,7 @@ mod utils;
 use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::users::*;
+use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
 use uuid::Uuid;
@@ -88,7 +89,7 @@ pub fn get_list(
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
-) -> ServiceResult<Vec<OutUser>> {
+) -> ServiceResult<SizedList<OutUser>> {
     let account_filter = if let Some(inner_data) = account_filter {
         Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
@@ -127,7 +128,11 @@ pub fn get_list(
                 .nullable()
                 .eq(role_filter.clone())
                 .or(role_filter.is_none()),
-        )
+        );
+
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let target = target
         .limit(limit.into())
         .offset(offset.into());
 
@@ -145,7 +150,10 @@ pub fn get_list(
         res
     };
 
-    Ok(out_users)
+    Ok(SizedList {
+        total: total,
+        list: out_users,
+    })
 }
 
 pub fn login(account: String, password: String, pool: web::Data<Pool>) -> ServiceResult<SlimUser> {

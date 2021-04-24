@@ -2,6 +2,7 @@ use crate::database::{db_connection, Pool};
 use crate::errors::ServiceResult;
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::*;
+use crate::models::utils::SizedList;
 use crate::services::submission;
 use actix_web::web;
 use diesel::prelude::*;
@@ -47,7 +48,7 @@ pub fn get_list(
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
-) -> ServiceResult<Vec<samples::SlimSample>> {
+) -> ServiceResult<SizedList<samples::SlimSample>> {
     let description_filter = if description_filter.is_none() {
         None
     } else {
@@ -80,7 +81,11 @@ pub fn get_list(
                 .nullable()
                 .eq(language_filter.clone())
                 .or(language_filter.is_none()),
-        )
+        );
+
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let target = target
         .limit(limit.into())
         .offset(offset.into());
 
@@ -106,7 +111,10 @@ pub fn get_list(
         res.push(slim_sample);
     }
 
-    Ok(res)
+    Ok(SizedList {
+        total: total,
+        list: res,
+    })
 }
 
 pub fn get(id: Uuid, pool: web::Data<Pool>) -> ServiceResult<samples::Sample> {

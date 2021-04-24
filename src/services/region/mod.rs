@@ -2,6 +2,7 @@ use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::region_links::*;
 use crate::models::regions::*;
+use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
 
@@ -10,22 +11,29 @@ pub fn get_list(
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
-) -> ServiceResult<Vec<Region>> {
+) -> ServiceResult<SizedList<Region>> {
     let conn = &db_connection(&pool)?;
 
     use crate::schema::regions as regions_schema;
-    let regions: Vec<Region> = regions_schema::table
+    let target = regions_schema::table
         .filter(
             regions_schema::self_type
                 .nullable()
                 .eq(self_type.clone())
                 .or(self_type.is_none()),
-        )
+        );
+
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let regions: Vec<Region> = target
         .limit(limit.into())
         .offset(offset.into())
         .load(conn)?;
 
-    Ok(regions)
+    Ok(SizedList{
+        total: total,
+        list: regions,
+    })
 }
 
 pub fn insert_problems(
