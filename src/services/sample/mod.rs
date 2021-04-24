@@ -42,6 +42,8 @@ pub fn create(
 pub fn get_list(
     description_filter: Option<String>,
     problem_id_filter: Option<i32>,
+    language_filter: Option<String>,
+    submit_time_order: Option<bool>,
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
@@ -57,7 +59,7 @@ pub fn get_list(
     use crate::schema::samples as samples_schema;
     use crate::schema::submissions as submissions_schema;
 
-    let raw: Vec<(samples::RawSample, submissions::RawSubmission)> = samples_schema::table
+    let target = samples_schema::table
         .inner_join(
             submissions_schema::table.on(samples_schema::submission_id.eq(submissions_schema::id)),
         )
@@ -73,10 +75,26 @@ pub fn get_list(
                 .eq(problem_id_filter)
                 .or(problem_id_filter.is_none()),
         )
+        .filter(
+            submissions_schema::language
+                .nullable()
+                .eq(language_filter.clone())
+                .or(language_filter.is_none()),
+        )
         .limit(limit.into())
-        .offset(offset.into())
-        .order(submissions_schema::submit_time.desc())
-        .load(conn)?;
+        .offset(offset.into());
+
+    let raw: Vec<(samples::RawSample, submissions::RawSubmission)> = match submit_time_order {
+        None => target
+            .order(submissions_schema::submit_time.desc())
+            .load(conn)?,
+        Some(true) => target
+            .order(submissions_schema::submit_time.asc())
+            .load(conn)?,
+        Some(false) => target
+            .order(submissions_schema::submit_time.desc())
+            .load(conn)?,
+    };
 
     let mut res = Vec::new();
     for (raw_sample, raw_submission) in raw {

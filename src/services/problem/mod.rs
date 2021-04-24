@@ -155,7 +155,7 @@ pub fn get_list(
         Some(String::from("%") + &title_filter.unwrap().as_str().replace(" ", "%") + "%")
     };
 
-    let inner_tag_filter: Vec<String> = if tag_filter.is_some() {
+    let tag_filter: Vec<String> = if tag_filter.is_some() {
         if tag_filter.clone().unwrap().len() > 0 {
             tag_filter.unwrap()
         } else {
@@ -189,8 +189,8 @@ pub fn get_list(
         )
         .filter(
             problems_schema::tags
-                .overlaps_with(inner_tag_filter.clone())
-                .or(inner_tag_filter.is_empty()),
+                .overlaps_with(tag_filter.clone())
+                .or(tag_filter.is_empty()),
         )
         .filter(
             problems_schema::title

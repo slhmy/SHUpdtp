@@ -50,6 +50,8 @@ pub async fn create(
 pub struct GetSampleListParams {
     description_filter: Option<String>,
     problem_id_filter: Option<i32>,
+    language_filter: Option<String>,
+    submit_time_order: Option<bool>,
     limit: i32,
     offset: i32,
 }
@@ -74,6 +76,8 @@ pub async fn get_list(
         sample::get_list(
             query.description_filter.clone(),
             query.problem_id_filter.clone(),
+            query.language_filter.clone(),
+            query.submit_time_order,
             query.limit,
             query.offset,
             pool,

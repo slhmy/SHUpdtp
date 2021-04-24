@@ -1,4 +1,4 @@
-use crate::database::Pool;
+use crate::database::{Pool, SyncMongo};
 use crate::errors::ServiceError;
 use crate::models::users::LoggedUser;
 use crate::services::problem_set;
@@ -67,12 +67,53 @@ pub async fn insert_problems(
         return Err(ServiceError::BadRequest(hint));
     }
 
+    let res =
+        web::block(move || region::insert_problems(region, body.problem_ids.clone(), None, pool))
+            .await
+            .map_err(|e| {
+                eprintln!("{}", e);
+                e
+            })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[derive(Deserialize)]
+pub struct GetProblemSetColumnListParams {
+    inner_id_filter: Option<i32>,
+    problem_id_filter: Option<i32>,
+    title_filter: Option<String>,
+    tag_filter: Option<Vec<String>>,
+    difficulty_filter: Option<String>,
+    inner_id_order: Option<bool>,
+    problem_id_order: Option<bool>,
+    difficulty_order: Option<bool>,
+    limit: i32,
+    offset: i32,
+}
+
+#[get("/{region}")]
+pub async fn get_column(
+    web::Path(region): web::Path<String>,
+    query: web::Query<GetProblemSetColumnListParams>,
+    pool: web::Data<Pool>,
+    mongodb_database: web::Data<SyncMongo>,
+) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || {
-        region::insert_problems(
+        problem_set::get_column(
             region,
-            body.problem_ids.clone(),
-            None,
+            query.inner_id_filter,
+            query.problem_id_filter,
+            query.title_filter.clone(),
+            query.tag_filter.clone(),
+            query.difficulty_filter.clone(),
+            query.inner_id_order.clone(),
+            query.problem_id_order.clone(),
+            query.difficulty_order.clone(),
+            query.limit,
+            query.offset,
             pool,
+            mongodb_database,
         )
     })
     .await

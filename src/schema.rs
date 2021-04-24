@@ -19,8 +19,9 @@ table! {
 }
 
 table! {
-    region_links (region) {
+    region_links (inner_id, region) {
         region -> Text,
+        inner_id -> Int4,
         problem_id -> Int4,
         score -> Nullable<Int4>,
     }
