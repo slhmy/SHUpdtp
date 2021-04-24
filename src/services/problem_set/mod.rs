@@ -35,7 +35,42 @@ pub fn create(
     Ok(())
 }
 
-pub fn get_list(
+pub fn get_set_list(
+    name_filter: Option<String>,
+    limit: i32,
+    offset: i32,
+    pool: web::Data<Pool>,
+) -> ServiceResult<SizedList<ProblemSetInfo>> {
+    let conn = &db_connection(&pool)?;
+
+    let name_filter = if name_filter.is_none() {
+        None
+    } else {
+        Some(String::from("%") + &name_filter.unwrap().as_str().replace(" ", "%") + "%")
+    };
+
+    use crate::schema::problem_sets as problem_sets_schema;
+    let target = problem_sets_schema::table.filter(
+        problem_sets_schema::name
+            .nullable()
+            .eq(name_filter.clone())
+            .or(name_filter.is_none()),
+    );
+
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let res = target
+        .offset(offset.into())
+        .limit(limit.into())
+        .load(conn)?;
+
+    Ok(SizedList {
+        total: total,
+        list: res,
+    })
+}
+
+pub fn get_item_list(
     region: String,
     inner_id_filter: Option<i32>,
     problem_id_filter: Option<i32>,
@@ -120,21 +155,18 @@ pub fn get_list(
                 .like(title_filter.clone())
                 .or(title_filter.is_none()),
         )
-        .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty))
-        .limit(limit.into());
+        .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty));
 
     let total: i64 = target.clone().count().get_result(conn)?;
 
-    let target = target
-        .offset(offset.into())
-        .select((
-            region_links_schema::region,
-            region_links_schema::inner_id,
-            problems_schema::id,
-            problems_schema::title,
-            problems_schema::tags,
-            problems_schema::difficulty,
-        ));
+    let target = target.offset(offset.into()).limit(limit.into()).select((
+        region_links_schema::region,
+        region_links_schema::inner_id,
+        problems_schema::id,
+        problems_schema::title,
+        problems_schema::tags,
+        problems_schema::difficulty,
+    ));
 
     let columns: Vec<RawProblemSetColumn> = match id_order {
         None => match problem_id_order {

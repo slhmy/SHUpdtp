@@ -46,6 +46,30 @@ pub async fn create(
 }
 
 #[derive(Deserialize)]
+pub struct GetProblemSetListParams {
+    name_filter: Option<String>,
+    limit: i32,
+    offset: i32,
+}
+
+#[get("")]
+pub async fn get_set_list(
+    query: web::Query<GetProblemSetListParams>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    let res = web::block(move || {
+        problem_set::get_set_list(query.name_filter.clone(), query.limit, query.offset, pool)
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[derive(Deserialize)]
 pub struct InsertToProblemSetBody {
     problem_ids: Vec<i32>,
 }
@@ -93,14 +117,14 @@ pub struct GetProblemSetColumnListParams {
 }
 
 #[get("/{region}")]
-pub async fn get_list(
+pub async fn get_item_list(
     web::Path(region): web::Path<String>,
     query: web::Query<GetProblemSetColumnListParams>,
     pool: web::Data<Pool>,
     mongodb_database: web::Data<SyncMongo>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || {
-        problem_set::get_list(
+        problem_set::get_item_list(
             region,
             query.inner_id_filter,
             query.problem_id_filter,
