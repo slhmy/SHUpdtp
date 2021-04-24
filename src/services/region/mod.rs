@@ -15,22 +15,21 @@ pub fn get_list(
     let conn = &db_connection(&pool)?;
 
     use crate::schema::regions as regions_schema;
-    let target = regions_schema::table
-        .filter(
-            regions_schema::self_type
-                .nullable()
-                .eq(self_type.clone())
-                .or(self_type.is_none()),
-        );
+    let target = regions_schema::table.filter(
+        regions_schema::self_type
+            .nullable()
+            .eq(self_type.clone())
+            .or(self_type.is_none()),
+    );
 
     let total: i64 = target.clone().count().get_result(conn)?;
 
     let regions: Vec<Region> = target
-        .limit(limit.into())
         .offset(offset.into())
+        .limit(limit.into())
         .load(conn)?;
 
-    Ok(SizedList{
+    Ok(SizedList {
         total: total,
         list: regions,
     })

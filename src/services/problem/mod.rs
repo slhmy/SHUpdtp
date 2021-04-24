@@ -205,12 +205,10 @@ pub fn get_list(
                 .or(release_filter.is_none()),
         )
         .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty));
-    
+
     let total: i64 = target.clone().count().get_result(conn)?;
 
-    let target = target
-        .limit(limit.into())
-        .offset(offset.into());
+    let target = target.offset(offset.into()).limit(limit.into());
 
     let problems: Vec<RawProblem> = match id_order {
         None => match difficulty_order {

@@ -1,8 +1,8 @@
 use crate::database::{db_connection, Pool};
 use crate::errors::ServiceResult;
 use crate::judge_actor::JudgeActorAddr;
-use crate::models::*;
 use crate::models::utils::SizedList;
+use crate::models::*;
 use crate::services::submission;
 use actix_web::web;
 use diesel::prelude::*;
@@ -85,9 +85,7 @@ pub fn get_list(
 
     let total: i64 = target.clone().count().get_result(conn)?;
 
-    let target = target
-        .limit(limit.into())
-        .offset(offset.into());
+    let target = target.offset(offset.into()).limit(limit.into());
 
     let raw: Vec<(samples::RawSample, submissions::RawSubmission)> = match submit_time_order {
         None => target

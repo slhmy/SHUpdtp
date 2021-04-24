@@ -132,9 +132,7 @@ pub fn get_list(
 
     let total: i64 = target.clone().count().get_result(conn)?;
 
-    let target = target
-        .limit(limit.into())
-        .offset(offset.into());
+    let target = target.offset(offset.into()).limit(limit.into());
 
     let users: Vec<User> = match id_order {
         None => target.load(conn)?,
