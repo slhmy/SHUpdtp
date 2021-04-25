@@ -89,7 +89,7 @@ pub fn get_item_list(
 
     use crate::schema::regions as regions_schema;
     let count: i64 = regions_schema::table
-        .filter(regions_schema::name.eq(region))
+        .filter(regions_schema::name.eq(region.clone()))
         .filter(regions_schema::self_type.eq("problem_set".to_owned()))
         .count()
         .get_result(conn)?;
@@ -127,6 +127,10 @@ pub fn get_item_list(
     let target = region_links_schema::table
         .inner_join(
             problems_schema::table.on(problems_schema::id.eq(region_links_schema::problem_id)),
+        )
+        .filter(
+            region_links_schema::region
+                .eq(region)
         )
         .filter(
             region_links_schema::inner_id
