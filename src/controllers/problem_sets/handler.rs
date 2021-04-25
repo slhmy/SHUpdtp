@@ -4,6 +4,7 @@ use crate::models::users::LoggedUser;
 use crate::services::problem_set;
 use crate::services::region;
 use actix_web::{delete, get, post, put, web, HttpResponse};
+use crate::judge_actor::JudgeActorAddr;
 
 #[derive(Deserialize)]
 pub struct CreateProblemSetBody {
@@ -138,6 +139,66 @@ pub async fn get_item_list(
             query.offset,
             pool,
             mongodb_database,
+        )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[get("/{region}/{inner_id}")]
+pub async fn get_problem(
+    web::Path((region, inner_id)): web::Path<(String, i32)>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    let res = web::block(move || {
+        region::get_problem(
+            region,
+            inner_id,
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[derive(Deserialize)]
+pub struct CreateProblemSetSubmissionBody {
+    src: String,
+    language: String,
+}
+
+#[get("/{region}/{inner_id}")]
+pub async fn create_submission(
+    web::Path((region, inner_id)): web::Path<(String, i32)>,
+    body: web::Json<CreateProblemSetSubmissionBody>,
+    pool: web::Data<Pool>,
+    logged_user: LoggedUser,
+    judge_actor: web::Data<JudgeActorAddr>,
+) -> Result<HttpResponse, ServiceError> {
+    info!("{:?}", logged_user.0);
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+
+    let res = web::block(move || {
+        region::create_submission(
+            region,
+            inner_id,
+            logged_user.0.unwrap().id,
+            body.src.clone(),
+            body.language.clone(),
+            pool,
+            judge_actor,
         )
     })
     .await

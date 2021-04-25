@@ -2,9 +2,17 @@ use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::region_links::*;
 use crate::models::regions::*;
+use crate::models::problems::*;
 use crate::models::utils::SizedList;
+use crate::models::*;
 use actix_web::web;
 use diesel::prelude::*;
+use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
+use crate::statics::WAITING_QUEUE;
+use crate::utils::get_cur_naive_date_time;
+use std::fs::File;
+use std::io::prelude::*;
+use uuid::Uuid;
 
 pub fn get_list(
     self_type: Option<String>,
@@ -88,4 +96,56 @@ pub fn insert_problems(
     }
 
     Ok(res)
+}
+
+pub fn get_problem(region: String, inner_id: i32, pool: web::Data<Pool>) -> ServiceResult<Problem> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::region_links as region_links_schema;
+
+    let problem_id: i32 = region_links_schema::table
+        .filter(region_links_schema::region.eq(region))
+        .filter(region_links_schema::inner_id.eq(inner_id))
+        .select(region_links_schema::problem_id)
+        .first(conn)?;
+
+    use crate::schema::problems as problems_schema;
+
+    let problem: RawProblem = problems_schema::table
+        .filter(problems_schema::id.eq(problem_id))
+        .first(conn)?;
+
+    Ok(Problem::from(problem))
+}
+
+pub fn create_submission(
+    region: String,
+    inner_id: i32,
+    user_id: i32,
+    src: String,
+    language: String,
+    pool: web::Data<Pool>,
+    judge_actor: web::Data<JudgeActorAddr>,
+) -> ServiceResult<Uuid> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::region_links as region_links_schema;
+
+    let problem_id: i32 = region_links_schema::table
+        .filter(region_links_schema::region.eq(region.clone()))
+        .filter(region_links_schema::inner_id.eq(inner_id))
+        .select(region_links_schema::problem_id)
+        .first(conn)?;
+
+    use crate::services::submission::create as inner_create;
+
+    inner_create(
+        Some(region),
+        problem_id,
+        user_id,
+        src,
+        language,
+        pool,
+        judge_actor,
+    )
 }
