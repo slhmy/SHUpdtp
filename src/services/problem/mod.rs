@@ -150,18 +150,14 @@ pub fn get_list(
     offset: i32,
     pool: web::Data<Pool>,
 ) -> ServiceResult<SizedList<SlimProblem>> {
-    let title_filter = if title_filter.is_none() {
-        None
+    let title_filter = if let Some(inner_data) = title_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &title_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
-    let tag_filter: Vec<String> = if tag_filter.is_some() {
-        if tag_filter.clone().unwrap().len() > 0 {
-            tag_filter.unwrap()
-        } else {
-            Vec::<String>::new()
-        }
+    let tag_filter: Vec<String> = if let Some(inner_data) = tag_filter {
+        inner_data
     } else {
         Vec::<String>::new()
     };

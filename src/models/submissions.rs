@@ -134,11 +134,10 @@ impl From<RawJudgeResult> for JudgeResult {
             None
         };
 
-        let max_time: Option<i32> = if details.is_some() {
+        let max_time: Option<i32> =  if let Some(inner_data) = details.clone() {
             Some(
-                details
+                inner_data
                     .clone()
-                    .unwrap()
                     .iter()
                     .map(|detail| detail.cpu_time)
                     .max()
@@ -148,11 +147,10 @@ impl From<RawJudgeResult> for JudgeResult {
             None
         };
 
-        let max_memory: Option<i32> = if details.is_some() {
+        let max_memory: Option<i32> = if let Some(inner_data) = details.clone() {
             Some(
-                details
+                inner_data
                     .clone()
-                    .unwrap()
                     .iter()
                     .map(|detail| detail.memory)
                     .max()
@@ -245,8 +243,8 @@ impl From<RawSubmission> for Submission {
             region: raw.region,
             state: raw.state,
             settings: serde_json::from_str::<JudgeSettings>(&raw.settings).unwrap(),
-            result: if raw.result.is_some() {
-                Some(serde_json::from_str::<JudgeResult>(&raw.result.unwrap()).unwrap())
+            result: if let Some(result) = raw.result {
+                Some(serde_json::from_str::<JudgeResult>(&result).unwrap())
             } else {
                 None
             },

@@ -43,17 +43,17 @@ pub fn get_set_list(
 ) -> ServiceResult<SizedList<ProblemSetInfo>> {
     let conn = &db_connection(&pool)?;
 
-    let name_filter = if name_filter.is_none() {
-        None
+    let name_filter = if let Some(inner_data) = name_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &name_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
     use crate::schema::problem_sets as problem_sets_schema;
     let target = problem_sets_schema::table.filter(
         problem_sets_schema::name
             .nullable()
-            .eq(name_filter.clone())
+            .like(name_filter.clone())
             .or(name_filter.is_none()),
     );
 
@@ -98,18 +98,14 @@ pub fn get_item_list(
         return Err(ServiceError::BadRequest(hint));
     }
 
-    let title_filter = if title_filter.is_none() {
-        None
+    let title_filter = if let Some(inner_data) = title_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &title_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
-    let tag_filter: Vec<String> = if tag_filter.is_some() {
-        if tag_filter.clone().unwrap().len() > 0 {
-            tag_filter.unwrap()
-        } else {
-            Vec::<String>::new()
-        }
+    let tag_filter: Vec<String> = if let Some(inner_data) = tag_filter {
+        inner_data.clone()
     } else {
         Vec::<String>::new()
     };

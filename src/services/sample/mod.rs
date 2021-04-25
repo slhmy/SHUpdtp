@@ -49,10 +49,10 @@ pub fn get_list(
     offset: i32,
     pool: web::Data<Pool>,
 ) -> ServiceResult<SizedList<samples::SlimSample>> {
-    let description_filter = if description_filter.is_none() {
-        None
+    let description_filter = if let Some(inner_data) = description_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &description_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
     let conn = &db_connection(&pool)?;
