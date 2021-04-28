@@ -64,11 +64,12 @@ async fn main() -> std::io::Result<()> {
                 CookieIdentityPolicy::new(cookie_secret_key.as_bytes())
                     .name("auth")
                     .path("/")
-                    .domain(&domain)
+                    // .domain(&domain)
                     // Time from creation that cookie remains valid
                     .max_age_time(auth_duration)
+                    .same_site(actix_web::cookie::SameSite::None)
                     // Restricted to https?
-                    .secure(secure_cookie),
+                    .secure(false),
             ))
             .service(hello)
             .configure(controllers::users::route)

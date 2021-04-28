@@ -177,7 +177,7 @@ pub struct CreateProblemSetSubmissionBody {
     language: String,
 }
 
-#[get("/{region}/{inner_id}/submission")]
+#[post("/{region}/{inner_id}/submission")]
 pub async fn create_submission(
     web::Path((region, inner_id)): web::Path<(String, i32)>,
     body: web::Json<CreateProblemSetSubmissionBody>,
