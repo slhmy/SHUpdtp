@@ -221,7 +221,24 @@ pub fn get_list(
     let out_problems = {
         let mut res = Vec::new();
         for problem in problems {
-            res.push(SlimProblem::from(problem));
+            let mut element = SlimProblem::from(problem);
+
+            use crate::schema::submissions as submissions_schema;
+            if submissions_schema::table
+                .filter(submissions_schema::problem_id.eq(element.id))
+                .filter(
+                    submissions_schema::state
+                        .eq("Pending".to_owned())
+                        .or(submissions_schema::state.eq("Waiting".to_owned())),
+                )
+                .count()
+                .get_result::<i64>(conn)?
+                > 0
+            {
+                element.is_effective = true;
+            }
+
+            res.push(element);
         }
         res
     };
@@ -259,11 +276,16 @@ pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
         let hint = "Problem is_released.".to_string();
         return Err(ServiceError::BadRequest(hint));
     } else if submissions_schema::table
-    .filter(submissions_schema::problem_id.eq(id))
-    .filter(
-        submissions_schema::state.eq("Pending".to_owned())
-        .or(submissions_schema::state.eq("Waiting".to_owned()))
-    ).count().get_result::<i64>(conn)? > 0 {
+        .filter(submissions_schema::problem_id.eq(id))
+        .filter(
+            submissions_schema::state
+                .eq("Pending".to_owned())
+                .or(submissions_schema::state.eq("Waiting".to_owned())),
+        )
+        .count()
+        .get_result::<i64>(conn)?
+        > 0
+    {
         let hint = "Problem still have submission running.".to_string();
         return Err(ServiceError::BadRequest(hint));
     }
