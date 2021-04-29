@@ -1,17 +1,12 @@
 use crate::database::{db_connection, Pool};
-use crate::errors::{ServiceError, ServiceResult};
+use crate::errors::ServiceResult;
 use crate::models::region_links::*;
 use crate::models::regions::*;
 use crate::models::problems::*;
 use crate::models::utils::SizedList;
-use crate::models::*;
 use actix_web::web;
 use diesel::prelude::*;
-use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
-use crate::statics::WAITING_QUEUE;
-use crate::utils::get_cur_naive_date_time;
-use std::fs::File;
-use std::io::prelude::*;
+use crate::judge_actor::JudgeActorAddr;
 use uuid::Uuid;
 
 pub fn get_list(

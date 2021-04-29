@@ -9,7 +9,7 @@ use crate::judge_actor::JudgeActorAddr;
 #[derive(Deserialize)]
 pub struct CreateProblemSetBody {
     region: String,
-    name: String,
+    title: String,
     introduction: Option<String>,
 }
 
@@ -32,7 +32,7 @@ pub async fn create(
     let res = web::block(move || {
         problem_set::create(
             body.region.clone(),
-            body.name.clone(),
+            body.title.clone(),
             body.introduction.clone(),
             pool,
         )
@@ -48,7 +48,7 @@ pub async fn create(
 
 #[derive(Deserialize)]
 pub struct GetProblemSetListParams {
-    name_filter: Option<String>,
+    title_filter: Option<String>,
     limit: i32,
     offset: i32,
 }
@@ -59,7 +59,7 @@ pub async fn get_set_list(
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || {
-        problem_set::get_set_list(query.name_filter.clone(), query.limit, query.offset, pool)
+        problem_set::get_set_list(query.title_filter.clone(), query.limit, query.offset, pool)
     })
     .await
     .map_err(|e| {

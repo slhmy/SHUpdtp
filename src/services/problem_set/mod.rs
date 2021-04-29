@@ -9,7 +9,7 @@ use diesel::prelude::*;
 
 pub fn create(
     region: String,
-    name: String,
+    title: String,
     introduction: Option<String>,
     pool: web::Data<Pool>,
 ) -> ServiceResult<()> {
@@ -20,6 +20,7 @@ pub fn create(
         .values(&Region {
             name: region.clone(),
             self_type: "problem_set".to_owned(),
+            title: title.clone(),
         })
         .execute(conn)?;
 
@@ -27,7 +28,7 @@ pub fn create(
     diesel::insert_into(problem_sets_schema::table)
         .values(&ProblemSetInfo {
             region: region,
-            name: name,
+            title: title,
             introduction: introduction,
         })
         .execute(conn)?;
@@ -36,14 +37,14 @@ pub fn create(
 }
 
 pub fn get_set_list(
-    name_filter: Option<String>,
+    title_filter: Option<String>,
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
 ) -> ServiceResult<SizedList<ProblemSetInfo>> {
     let conn = &db_connection(&pool)?;
 
-    let name_filter = if let Some(inner_data) = name_filter {
+    let title_filter = if let Some(inner_data) = title_filter {
         Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
         None
@@ -51,10 +52,10 @@ pub fn get_set_list(
 
     use crate::schema::problem_sets as problem_sets_schema;
     let target = problem_sets_schema::table.filter(
-        problem_sets_schema::name
+        problem_sets_schema::title
             .nullable()
-            .like(name_filter.clone())
-            .or(name_filter.is_none()),
+            .like(title_filter.clone())
+            .or(title_filter.is_none()),
     );
 
     let total: i64 = target.clone().count().get_result(conn)?;

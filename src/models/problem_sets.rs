@@ -5,7 +5,7 @@ use crate::schema::*;
 #[table_name = "problem_sets"]
 pub struct ProblemSetInfo {
     pub region: String,
-    pub name: String,
+    pub title: String,
     pub introduction: Option<String>,
 }
 

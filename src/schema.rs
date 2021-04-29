@@ -1,7 +1,7 @@
 table! {
     problem_sets (region) {
         region -> Text,
-        name -> Text,
+        title -> Text,
         introduction -> Nullable<Text>,
     }
 }
@@ -19,6 +19,14 @@ table! {
 }
 
 table! {
+    region_access_lists (region) {
+        region -> Text,
+        salt -> Nullable<Varchar>,
+        hash -> Nullable<Bytea>,
+    }
+}
+
+table! {
     region_links (inner_id, region) {
         region -> Text,
         inner_id -> Int4,
@@ -31,6 +39,7 @@ table! {
     regions (name, self_type) {
         name -> Text,
         self_type -> Text,
+        title -> Text,
     }
 }
 
@@ -74,6 +83,7 @@ table! {
 allow_tables_to_appear_in_same_query!(
     problem_sets,
     problems,
+    region_access_lists,
     region_links,
     regions,
     samples,
