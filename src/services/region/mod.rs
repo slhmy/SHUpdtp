@@ -1,5 +1,5 @@
 use crate::database::{db_connection, Pool};
-use crate::errors::ServiceResult;
+use crate::errors::{ ServiceResult, ServiceError };
 use crate::models::region_links::*;
 use crate::models::regions::*;
 use crate::models::problems::*;
@@ -131,6 +131,17 @@ pub fn create_submission(
         .filter(region_links_schema::inner_id.eq(inner_id))
         .select(region_links_schema::problem_id)
         .first(conn)?;
+
+    use crate::schema::problems as problems_schema;
+
+    let is_released: bool = problems_schema::table.filter(problems_schema::id.eq(problem_id))
+        .select(problems_schema::is_released)
+        .first(conn)?;
+    
+    if !is_released {
+        let hint = "Problem is not released.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
 
     use crate::services::submission::create as inner_create;
 
