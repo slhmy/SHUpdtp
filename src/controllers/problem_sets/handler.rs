@@ -1,10 +1,10 @@
 use crate::database::{Pool, SyncMongo};
 use crate::errors::ServiceError;
+use crate::judge_actor::JudgeActorAddr;
 use crate::models::users::LoggedUser;
 use crate::services::problem_set;
 use crate::services::region;
 use actix_web::{delete, get, post, put, web, HttpResponse};
-use crate::judge_actor::JudgeActorAddr;
 
 #[derive(Deserialize)]
 pub struct CreateProblemSetBody {
@@ -155,18 +155,12 @@ pub async fn get_problem(
     web::Path((region, inner_id)): web::Path<(String, i32)>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let res = web::block(move || {
-        region::get_problem(
-            region,
-            inner_id,
-            pool,
-        )
-    })
-    .await
-    .map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res = web::block(move || region::get_problem(region, inner_id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

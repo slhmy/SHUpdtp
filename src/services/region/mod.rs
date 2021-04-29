@@ -1,12 +1,12 @@
 use crate::database::{db_connection, Pool};
-use crate::errors::{ ServiceResult, ServiceError };
+use crate::errors::{ServiceError, ServiceResult};
+use crate::judge_actor::JudgeActorAddr;
+use crate::models::problems::*;
 use crate::models::region_links::*;
 use crate::models::regions::*;
-use crate::models::problems::*;
 use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
-use crate::judge_actor::JudgeActorAddr;
 use uuid::Uuid;
 
 pub fn get_list(
@@ -134,10 +134,11 @@ pub fn create_submission(
 
     use crate::schema::problems as problems_schema;
 
-    let is_released: bool = problems_schema::table.filter(problems_schema::id.eq(problem_id))
+    let is_released: bool = problems_schema::table
+        .filter(problems_schema::id.eq(problem_id))
         .select(problems_schema::is_released)
         .first(conn)?;
-    
+
     if !is_released {
         let hint = "Problem is not released.".to_string();
         return Err(ServiceError::BadRequest(hint));

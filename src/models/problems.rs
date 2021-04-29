@@ -83,6 +83,7 @@ pub struct SlimProblem {
     pub id: i32,
     pub info: ProblemInfo,
     pub is_released: bool,
+    pub is_effective: bool,
 }
 
 impl From<RawProblem> for SlimProblem {
@@ -95,6 +96,7 @@ impl From<RawProblem> for SlimProblem {
                 difficulty: raw.difficulty,
             },
             is_released: raw.is_released,
+            is_effective: false,
         }
     }
 }

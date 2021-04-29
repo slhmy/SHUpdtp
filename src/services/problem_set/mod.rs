@@ -129,10 +129,7 @@ pub fn get_item_list(
         .inner_join(
             problems_schema::table.on(problems_schema::id.eq(region_links_schema::problem_id)),
         )
-        .filter(
-            region_links_schema::region
-                .eq(region)
-        )
+        .filter(region_links_schema::region.eq(region))
         .filter(
             region_links_schema::inner_id
                 .nullable()

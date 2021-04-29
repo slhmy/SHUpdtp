@@ -134,7 +134,7 @@ impl From<RawJudgeResult> for JudgeResult {
             None
         };
 
-        let max_time: Option<i32> =  if let Some(inner_data) = details.clone() {
+        let max_time: Option<i32> = if let Some(inner_data) = details.clone() {
             Some(
                 inner_data
                     .clone()
