@@ -113,6 +113,7 @@ pub fn get(id: Uuid, pool: web::Data<Pool>) -> ServiceResult<submissions::Submis
 }
 
 pub fn get_list(
+    region_filter: Option<String>,
     problem_id_filter: Option<i32>,
     user_id_filter: Option<i32>,
     limit: i32,
@@ -124,6 +125,12 @@ pub fn get_list(
     use crate::schema::submissions as submissions_schema;
 
     let target = submissions_schema::table
+        .filter(
+            submissions_schema::region
+                .nullable()
+                .eq(region_filter.clone())
+                .or(region_filter.is_none()),
+        )
         .filter(
             submissions_schema::problem_id
                 .nullable()

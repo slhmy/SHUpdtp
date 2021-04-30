@@ -84,6 +84,7 @@ pub async fn get(
 
 #[derive(Deserialize)]
 pub struct GetSubmissionListParams {
+    region_filter: Option<String>,
     problem_id_filter: Option<i32>,
     user_id_filter: Option<i32>,
     limit: i32,
@@ -102,6 +103,7 @@ pub async fn get_list(
 
     let res = web::block(move || {
         submission::get_list(
+            query.region_filter.clone(),
             query.problem_id_filter.clone(),
             query.user_id_filter.clone(),
             query.limit,
