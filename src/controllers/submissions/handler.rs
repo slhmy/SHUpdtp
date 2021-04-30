@@ -81,3 +81,39 @@ pub async fn get(
 
     Ok(HttpResponse::Ok().json(&res))
 }
+
+#[derive(Deserialize)]
+pub struct GetSubmissionListParams {
+    problem_id_filter: Option<i32>,
+    user_id_filter: Option<i32>,
+    limit: i32,
+    offset: i32,
+}
+
+#[get("")]
+pub async fn get_list(
+    query: web::Query<GetSubmissionListParams>,
+    logged_user: LoggedUser,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+
+    let res = web::block(move || {
+        submission::get_list(
+            query.problem_id_filter.clone(),
+            query.user_id_filter.clone(),
+            query.limit,
+            query.offset,
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}

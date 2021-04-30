@@ -2,6 +2,7 @@ use crate::database::{db_connection, Pool};
 use crate::errors::ServiceResult;
 use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
 use crate::models::*;
+use crate::models::utils::SizedList;
 use crate::statics::WAITING_QUEUE;
 use crate::utils::get_cur_naive_date_time;
 use actix_web::web;
@@ -109,4 +110,48 @@ pub fn get(id: Uuid, pool: web::Data<Pool>) -> ServiceResult<submissions::Submis
         .first(conn)?;
 
     Ok(submissions::Submission::from(raw))
+}
+
+pub fn get_list(
+    problem_id_filter: Option<i32>,
+    user_id_filter: Option<i32>,
+    limit: i32,
+    offset: i32,
+    pool: web::Data<Pool>,
+) -> ServiceResult<SizedList<submissions::SlimSubmission>> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::submissions as submissions_schema;
+
+    let target = submissions_schema::table
+        .filter(
+            submissions_schema::problem_id
+                .nullable()
+                .eq(problem_id_filter)
+                .or(problem_id_filter.is_none()),
+        )
+        .filter(
+            submissions_schema::user_id
+                .nullable()
+                .eq(user_id_filter)
+                .or(user_id_filter.is_none()),
+        );
+    
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let raw_submissions: Vec<submissions::RawSubmission> = target
+        .offset(offset.into())
+        .limit(limit.into())
+        .order(submissions_schema::submit_time.desc())
+        .load(conn)?;
+
+    let mut res = Vec::new();
+    for raw_submission in raw_submissions {
+        res.push(submissions::SlimSubmission::from(raw_submission));
+    }
+
+    Ok(SizedList {
+        total: total,
+        list: res,
+    })
 }
