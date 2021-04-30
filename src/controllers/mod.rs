@@ -5,3 +5,4 @@ pub mod regions;
 pub mod samples;
 pub mod submissions;
 pub mod users;
+pub mod contests;

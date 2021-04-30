@@ -6,6 +6,18 @@ table! {
 }
 
 table! {
+    contests (region) {
+        region -> Text,
+        title -> Text,
+        introduction -> Nullable<Text>,
+        start_time -> Nullable<Timestamp>,
+        end_time -> Nullable<Timestamp>,
+        seal_time -> Nullable<Timestamp>,
+        settings -> Text,
+    }
+}
+
+table! {
     problem_sets (region) {
         region -> Text,
         title -> Text,
@@ -48,6 +60,7 @@ table! {
         self_type -> Text,
         title -> Text,
         has_access_policy -> Bool,
+        introduction -> Nullable<Text>,
     }
 }
 
@@ -91,6 +104,7 @@ table! {
 
 allow_tables_to_appear_in_same_query!(
     access_control_list,
+    contests,
     problem_sets,
     problems,
     region_access_settings,
