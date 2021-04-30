@@ -130,9 +130,9 @@ pub struct CreateProblemsResult {
 #[derive(AsChangeset)]
 #[table_name = "problems"]
 pub struct ProblemForm {
-    pub title: String,
-    pub tags: Vec<String>,
-    pub difficulty: f64,
-    pub contents: String,
-    pub settings: String,
+    pub title: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub difficulty: Option<f64>,
+    pub contents: Option<String>,
+    pub settings: Option<String>,
 }

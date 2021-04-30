@@ -6,4 +6,5 @@ pub struct Region {
     pub name: String,
     pub self_type: String,
     pub title: String,
+    pub has_access_policy: bool,
 }

@@ -21,6 +21,7 @@ pub fn create(
             name: region.clone(),
             self_type: "problem_set".to_owned(),
             title: title.clone(),
+            has_access_policy: false,
         })
         .execute(conn)?;
 

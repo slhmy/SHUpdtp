@@ -96,6 +96,7 @@ impl Handler<StartJudge> for JudgeActor {
 
                 // update submissions
                 let target = submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
+                let mut result_set = std::collections::HashSet::new();
                 diesel::update(target)
                     .set((
                         submissions_schema::state.eq("Finished".to_owned()),
@@ -105,6 +106,20 @@ impl Handler<StartJudge> for JudgeActor {
                         submissions_schema::max_time.eq(result.max_time),
                         submissions_schema::max_memory.eq(result.max_memory),
                         submissions_schema::err.eq(result.err),
+                        submissions_schema::out_results.eq({
+                            if let Some(details) = result.details {
+                                let mut res = Vec::new();
+                                for detail in details {
+                                    result_set.insert(detail.result);
+                                }
+                                for e in result_set.clone() {
+                                    res.push(e);
+                                }
+                                Some(res)
+                            } else {
+                                None
+                            }
+                        }),
                     ))
                     .execute(&self.db_connection)
                     .expect("Error changing submissions's data.");
@@ -142,6 +157,14 @@ impl Handler<StartJudge> for JudgeActor {
                                     "error_times": 0,
                                     "max_time": 0,
                                     "max_memory": 0,
+                                    "WRONG_ANSWER": 0,
+                                    "SUCCESS": 0,
+                                    "CPU_TIME_LIMIT_EXCEEDED": 0,
+                                    "REAL_TIME_LIMIT_EXCEEDED": 0,
+                                    "MEMORY_LIMIT_EXCEEDED": 0,
+                                    "RUNTIME_ERROR": 0,
+                                    "SYSTEM_ERROR": 0,
+                                    "UNKNOWN_ERROR": 0,
                                 },
                                 None,
                             )
@@ -203,7 +226,47 @@ impl Handler<StartJudge> for JudgeActor {
                                                 / (accept_times + 1)
                                             },
                                             None => doc.get("max_memory").unwrap().as_i32().unwrap()
-                                        }
+                                        },
+                                    "WRONG_ANSWER": if result_set.contains("WRONG_ANSWER") {
+                                        doc.get("WRONG_ANSWER").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("WRONG_ANSWER").unwrap().as_i32().unwrap() 
+                                    },
+                                    "SUCCESS": if result_set.contains("SUCCESS") {
+                                        doc.get("SUCCESS").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("SUCCESS").unwrap().as_i32().unwrap() 
+                                    },
+                                    "CPU_TIME_LIMIT_EXCEEDED": if result_set.contains("CPU_TIME_LIMIT_EXCEEDED") {
+                                        doc.get("CPU_TIME_LIMIT_EXCEEDED").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("CPU_TIME_LIMIT_EXCEEDED").unwrap().as_i32().unwrap() 
+                                    },
+                                    "REAL_TIME_LIMIT_EXCEEDED": if result_set.contains("REAL_TIME_LIMIT_EXCEEDED") {
+                                        doc.get("REAL_TIME_LIMIT_EXCEEDED").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("REAL_TIME_LIMIT_EXCEEDED").unwrap().as_i32().unwrap() 
+                                    },
+                                    "MEMORY_LIMIT_EXCEEDED": if result_set.contains("MEMORY_LIMIT_EXCEEDED") {
+                                        doc.get("MEMORY_LIMIT_EXCEEDED").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("MEMORY_LIMIT_EXCEEDED").unwrap().as_i32().unwrap() 
+                                    },
+                                    "RUNTIME_ERROR": if result_set.contains("RUNTIME_ERROR") {
+                                        doc.get("RUNTIME_ERROR").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("RUNTIME_ERROR").unwrap().as_i32().unwrap() 
+                                    },
+                                    "SYSTEM_ERROR": if result_set.contains("SYSTEM_ERROR") {
+                                        doc.get("SYSTEM_ERROR").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("SYSTEM_ERROR").unwrap().as_i32().unwrap() 
+                                    },
+                                    "UNKNOWN_ERROR": if result_set.contains("UNKNOWN_ERROR") {
+                                        doc.get("UNKNOWN_ERROR").unwrap().as_i32().unwrap() + 1
+                                    } else {
+                                        doc.get("UNKNOWN_ERROR").unwrap().as_i32().unwrap() 
+                                    },
                                 },
                                 None,
                             )

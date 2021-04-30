@@ -1,8 +1,8 @@
 use crate::database::{db_connection, Pool};
 use crate::errors::ServiceResult;
 use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
-use crate::models::*;
 use crate::models::utils::SizedList;
+use crate::models::*;
 use crate::statics::WAITING_QUEUE;
 use crate::utils::get_cur_naive_date_time;
 use actix_web::web;
@@ -136,7 +136,7 @@ pub fn get_list(
                 .eq(user_id_filter)
                 .or(user_id_filter.is_none()),
         );
-    
+
     let total: i64 = target.clone().count().get_result(conn)?;
 
     let raw_submissions: Vec<submissions::RawSubmission> = target

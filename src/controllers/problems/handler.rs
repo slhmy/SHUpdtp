@@ -1,11 +1,11 @@
 use crate::database::Pool;
 use crate::errors::ServiceError;
+use crate::models::problems::{ProblemContents, ProblemInfo, ProblemSettings};
 use crate::models::users::LoggedUser;
 use crate::services::problem;
 use actix_multipart::Multipart;
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use futures::{StreamExt, TryStreamExt};
-use crate::models::problems::{ProblemInfo, ProblemContents, ProblemSettings};
 
 #[post("")]
 pub async fn batch_create(
@@ -208,9 +208,9 @@ pub async fn create(
 
 #[derive(Deserialize)]
 pub struct UpdateProblemBody {
-    new_info: ProblemInfo,
-    new_contents: ProblemContents,
-    new_settings: ProblemSettings,
+    new_info: Option<ProblemInfo>,
+    new_contents: Option<ProblemContents>,
+    new_settings: Option<ProblemSettings>,
 }
 
 #[put("/{id}")]

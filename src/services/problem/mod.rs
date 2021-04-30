@@ -348,9 +348,9 @@ pub fn create(
 
 pub fn update(
     id: i32,
-    new_info: ProblemInfo,
-    new_contents: ProblemContents,
-    new_settings: ProblemSettings,
+    new_info: Option<ProblemInfo>,
+    new_contents: Option<ProblemContents>,
+    new_settings: Option<ProblemSettings>,
     pool: web::Data<Pool>,
 ) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
@@ -358,11 +358,31 @@ pub fn update(
     use crate::schema::problems as problems_schema;
     diesel::update(problems_schema::table.filter(problems_schema::id.eq(id)))
         .set(ProblemForm {
-            title: new_info.title,
-            tags: new_info.tags,
-            difficulty: new_info.difficulty,
-            contents: serde_json::to_string(&new_contents).unwrap(),
-            settings: serde_json::to_string(&new_settings).unwrap(),
+            title: if let Some(inner_data) = new_info.clone() {
+                Some(inner_data.title)
+            } else {
+                None
+            },
+            tags: if let Some(inner_data) = new_info.clone() {
+                Some(inner_data.tags)
+            } else {
+                None
+            },
+            difficulty: if let Some(inner_data) = new_info {
+                Some(inner_data.difficulty)
+            } else {
+                None
+            },
+            contents: if let Some(inner_data) = new_contents {
+                Some(serde_json::to_string(&inner_data).unwrap())
+            } else {
+                None
+            },
+            settings: if let Some(inner_data) = new_settings {
+                Some(serde_json::to_string(&inner_data).unwrap())
+            } else {
+                None
+            },
         })
         .execute(conn)?;
 
