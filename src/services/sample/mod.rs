@@ -1,6 +1,7 @@
 use crate::database::{db_connection, Pool};
 use crate::errors::ServiceResult;
 use crate::judge_actor::JudgeActorAddr;
+use crate::models::utils::SizedList;
 use crate::models::*;
 use crate::services::submission;
 use actix_web::web;
@@ -42,14 +43,16 @@ pub fn create(
 pub fn get_list(
     description_filter: Option<String>,
     problem_id_filter: Option<i32>,
+    language_filter: Option<String>,
+    submit_time_order: Option<bool>,
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
-) -> ServiceResult<Vec<samples::SlimSample>> {
-    let description_filter = if description_filter.is_none() {
-        None
+) -> ServiceResult<SizedList<samples::SlimSample>> {
+    let description_filter = if let Some(inner_data) = description_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &description_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
     let conn = &db_connection(&pool)?;
@@ -57,7 +60,7 @@ pub fn get_list(
     use crate::schema::samples as samples_schema;
     use crate::schema::submissions as submissions_schema;
 
-    let raw: Vec<(samples::RawSample, submissions::RawSubmission)> = samples_schema::table
+    let target = samples_schema::table
         .inner_join(
             submissions_schema::table.on(samples_schema::submission_id.eq(submissions_schema::id)),
         )
@@ -73,10 +76,28 @@ pub fn get_list(
                 .eq(problem_id_filter)
                 .or(problem_id_filter.is_none()),
         )
-        .limit(limit.into())
-        .offset(offset.into())
-        .order(submissions_schema::submit_time.desc())
-        .load(conn)?;
+        .filter(
+            submissions_schema::language
+                .nullable()
+                .eq(language_filter.clone())
+                .or(language_filter.is_none()),
+        );
+
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let target = target.offset(offset.into()).limit(limit.into());
+
+    let raw: Vec<(samples::RawSample, submissions::RawSubmission)> = match submit_time_order {
+        None => target
+            .order(submissions_schema::submit_time.desc())
+            .load(conn)?,
+        Some(true) => target
+            .order(submissions_schema::submit_time.asc())
+            .load(conn)?,
+        Some(false) => target
+            .order(submissions_schema::submit_time.desc())
+            .load(conn)?,
+    };
 
     let mut res = Vec::new();
     for (raw_sample, raw_submission) in raw {
@@ -88,7 +109,10 @@ pub fn get_list(
         res.push(slim_sample);
     }
 
-    Ok(res)
+    Ok(SizedList {
+        total: total,
+        list: res,
+    })
 }
 
 pub fn get(id: Uuid, pool: web::Data<Pool>) -> ServiceResult<samples::Sample> {

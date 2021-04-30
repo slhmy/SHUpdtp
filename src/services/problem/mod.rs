@@ -3,6 +3,7 @@ mod utils;
 use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::problems::*;
+use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
 use std::fs;
@@ -148,19 +149,15 @@ pub fn get_list(
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
-) -> ServiceResult<Vec<SlimProblem>> {
-    let title_filter = if title_filter.is_none() {
-        None
+) -> ServiceResult<SizedList<SlimProblem>> {
+    let title_filter = if let Some(inner_data) = title_filter {
+        Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {
-        Some(String::from("%") + &title_filter.unwrap().as_str().replace(" ", "%") + "%")
+        None
     };
 
-    let inner_tag_filter: Vec<String> = if tag_filter.is_some() {
-        if tag_filter.clone().unwrap().len() > 0 {
-            tag_filter.unwrap()
-        } else {
-            Vec::<String>::new()
-        }
+    let tag_filter: Vec<String> = if let Some(inner_data) = tag_filter {
+        inner_data
     } else {
         Vec::<String>::new()
     };
@@ -189,8 +186,8 @@ pub fn get_list(
         )
         .filter(
             problems_schema::tags
-                .overlaps_with(inner_tag_filter.clone())
-                .or(inner_tag_filter.is_empty()),
+                .overlaps_with(tag_filter.clone())
+                .or(tag_filter.is_empty()),
         )
         .filter(
             problems_schema::title
@@ -203,9 +200,11 @@ pub fn get_list(
                 .eq(release_filter.unwrap_or_default())
                 .or(release_filter.is_none()),
         )
-        .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty))
-        .limit(limit.into())
-        .offset(offset.into());
+        .filter(problems_schema::difficulty.between(min_difficulty, max_difficulty));
+
+    let total: i64 = target.clone().count().get_result(conn)?;
+
+    let target = target.offset(offset.into()).limit(limit.into());
 
     let problems: Vec<RawProblem> = match id_order {
         None => match difficulty_order {
@@ -222,12 +221,32 @@ pub fn get_list(
     let out_problems = {
         let mut res = Vec::new();
         for problem in problems {
-            res.push(SlimProblem::from(problem));
+            let mut element = SlimProblem::from(problem);
+
+            use crate::schema::submissions as submissions_schema;
+            if submissions_schema::table
+                .filter(submissions_schema::problem_id.eq(element.id))
+                .filter(
+                    submissions_schema::state
+                        .eq("Pending".to_owned())
+                        .or(submissions_schema::state.eq("Waiting".to_owned())),
+                )
+                .count()
+                .get_result::<i64>(conn)?
+                > 0
+            {
+                element.is_effective = true;
+            }
+
+            res.push(element);
         }
         res
     };
 
-    Ok(out_problems)
+    Ok(SizedList {
+        total: total,
+        list: out_problems,
+    })
 }
 
 pub fn get(id: i32, pool: web::Data<Pool>) -> ServiceResult<Problem> {
@@ -255,6 +274,19 @@ pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
         .first::<bool>(conn)?
     {
         let hint = "Problem is_released.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    } else if submissions_schema::table
+        .filter(submissions_schema::problem_id.eq(id))
+        .filter(
+            submissions_schema::state
+                .eq("Pending".to_owned())
+                .or(submissions_schema::state.eq("Waiting".to_owned())),
+        )
+        .count()
+        .get_result::<i64>(conn)?
+        > 0
+    {
+        let hint = "Problem still have submission running.".to_string();
         return Err(ServiceError::BadRequest(hint));
     }
 

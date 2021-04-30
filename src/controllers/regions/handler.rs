@@ -17,12 +17,7 @@ pub async fn get_list(
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || {
-        region::get_list(
-            query.self_type.clone(),
-            query.limit,
-            query.offset,
-            pool,
-        )
+        region::get_list(query.self_type.clone(), query.limit, query.offset, pool)
     })
     .await
     .map_err(|e| {

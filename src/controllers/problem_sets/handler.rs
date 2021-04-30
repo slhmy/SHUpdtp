@@ -1,5 +1,6 @@
-use crate::database::Pool;
+use crate::database::{Pool, SyncMongo};
 use crate::errors::ServiceError;
+use crate::judge_actor::JudgeActorAddr;
 use crate::models::users::LoggedUser;
 use crate::services::problem_set;
 use crate::services::region;
@@ -8,7 +9,7 @@ use actix_web::{delete, get, post, put, web, HttpResponse};
 #[derive(Deserialize)]
 pub struct CreateProblemSetBody {
     region: String,
-    name: String,
+    title: String,
     introduction: Option<String>,
 }
 
@@ -31,10 +32,34 @@ pub async fn create(
     let res = web::block(move || {
         problem_set::create(
             body.region.clone(),
-            body.name.clone(),
+            body.title.clone(),
             body.introduction.clone(),
             pool,
         )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[derive(Deserialize)]
+pub struct GetProblemSetListParams {
+    title_filter: Option<String>,
+    limit: i32,
+    offset: i32,
+}
+
+#[get("")]
+pub async fn get_set_list(
+    query: web::Query<GetProblemSetListParams>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    let res = web::block(move || {
+        problem_set::get_set_list(query.title_filter.clone(), query.limit, query.offset, pool)
     })
     .await
     .map_err(|e| {
@@ -67,12 +92,107 @@ pub async fn insert_problems(
         return Err(ServiceError::BadRequest(hint));
     }
 
+    let res =
+        web::block(move || region::insert_problems(region, body.problem_ids.clone(), None, pool))
+            .await
+            .map_err(|e| {
+                eprintln!("{}", e);
+                e
+            })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[derive(Deserialize)]
+pub struct GetProblemSetColumnListParams {
+    inner_id_filter: Option<i32>,
+    problem_id_filter: Option<i32>,
+    title_filter: Option<String>,
+    tag_filter: Option<Vec<String>>,
+    difficulty_filter: Option<String>,
+    inner_id_order: Option<bool>,
+    problem_id_order: Option<bool>,
+    difficulty_order: Option<bool>,
+    limit: i32,
+    offset: i32,
+}
+
+#[get("/{region}")]
+pub async fn get_item_list(
+    web::Path(region): web::Path<String>,
+    query: web::Query<GetProblemSetColumnListParams>,
+    pool: web::Data<Pool>,
+    mongodb_database: web::Data<SyncMongo>,
+) -> Result<HttpResponse, ServiceError> {
     let res = web::block(move || {
-        region::insert_problems(
+        problem_set::get_item_list(
             region,
-            body.problem_ids.clone(),
-            None,
+            query.inner_id_filter,
+            query.problem_id_filter,
+            query.title_filter.clone(),
+            query.tag_filter.clone(),
+            query.difficulty_filter.clone(),
+            query.inner_id_order.clone(),
+            query.problem_id_order.clone(),
+            query.difficulty_order.clone(),
+            query.limit,
+            query.offset,
             pool,
+            mongodb_database,
+        )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[get("/{region}/{inner_id}")]
+pub async fn get_problem(
+    web::Path((region, inner_id)): web::Path<(String, i32)>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    let res = web::block(move || region::get_problem(region, inner_id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[derive(Deserialize)]
+pub struct CreateProblemSetSubmissionBody {
+    src: String,
+    language: String,
+}
+
+#[post("/{region}/{inner_id}/submission")]
+pub async fn create_submission(
+    web::Path((region, inner_id)): web::Path<(String, i32)>,
+    body: web::Json<CreateProblemSetSubmissionBody>,
+    pool: web::Data<Pool>,
+    logged_user: LoggedUser,
+    judge_actor: web::Data<JudgeActorAddr>,
+) -> Result<HttpResponse, ServiceError> {
+    info!("{:?}", logged_user.0);
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+
+    let res = web::block(move || {
+        region::create_submission(
+            region,
+            inner_id,
+            logged_user.0.unwrap().id,
+            body.src.clone(),
+            body.language.clone(),
+            pool,
+            judge_actor,
         )
     })
     .await

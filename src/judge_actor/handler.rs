@@ -117,14 +117,14 @@ impl Handler<StartJudge> for JudgeActor {
                 );
 
                 // if not sample submission
-                if submission.region.is_some() {
+                if let Some(region) = submission.region {
                     if self
                         .mongodb_database
                         .collection("submission_statistics")
                         .find_one(
                             doc! {
                                 "problem_id": submission.problem_id,
-                                "region": submission.region.clone().unwrap(),
+                                "region": region.clone(),
                             },
                             None,
                         )
@@ -136,7 +136,7 @@ impl Handler<StartJudge> for JudgeActor {
                             .insert_one(
                                 doc! {
                                     "problem_id": submission.problem_id,
-                                    "region": submission.region.clone().unwrap(),
+                                    "region": region.clone(),
                                     "submit_times": 0,
                                     "accept_times": 0,
                                     "error_times": 0,
@@ -153,7 +153,7 @@ impl Handler<StartJudge> for JudgeActor {
                         .find_one(
                             doc! {
                                 "problem_id": submission.problem_id,
-                                "region": submission.region.clone().unwrap(),
+                                "region": region.clone(),
                             },
                             None,
                         )
@@ -164,11 +164,11 @@ impl Handler<StartJudge> for JudgeActor {
                             .update_one(
                                 doc! {
                                     "problem_id": submission.problem_id,
-                                    "region": submission.region.clone().unwrap(),
+                                    "region": region.clone(),
                                 },
                                 doc! {
                                     "problem_id": submission.problem_id,
-                                    "region": submission.region.unwrap(),
+                                    "region": region,
                                     "submit_times": doc.get("submit_times").unwrap().as_i32().unwrap() + 1,
                                     "accept_times": doc.get("accept_times").unwrap().as_i32().unwrap()
                                         + match submission.is_accepted {

@@ -1,0 +1,29 @@
+version: 2
+updates:
+- package-ecosystem: cargo
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: actix
+    versions:
+    - 0.11.0
+  - dependency-name: log
+    versions:
+    - 0.4.14
+  - dependency-name: sha-1
+    versions:
+    - 0.9.3
+  - dependency-name: shrinkwraprs
+    versions:
+    - 0.3.0
+  - dependency-name: time
+    versions:
+    - 0.2.25
+  - dependency-name: regex
+    versions:
+    - 1.4.3
+  - dependency-name: uuid
+    versions:
+    - 0.8.2
