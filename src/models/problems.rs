@@ -126,3 +126,13 @@ pub struct CreateProblemsResult {
     pub is_success: bool,
     pub id: Option<i32>,
 }
+
+#[derive(AsChangeset)]
+#[table_name = "problems"]
+pub struct ProblemForm {
+    pub title: String,
+    pub tags: Vec<String>,
+    pub difficulty: f64,
+    pub contents: String,
+    pub settings: String,
+}

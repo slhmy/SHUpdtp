@@ -322,3 +322,49 @@ pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
 
     Ok(())
 }
+
+pub fn create(
+    info: ProblemInfo,
+    contents: ProblemContents,
+    settings: ProblemSettings,
+    pool: web::Data<Pool>,
+) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::problems as problems_schema;
+    diesel::insert_into(problems_schema::table)
+        .values(&InsertableProblem {
+            title: info.title,
+            tags: info.tags,
+            difficulty: info.difficulty,
+            contents: serde_json::to_string(&contents).unwrap(),
+            settings: serde_json::to_string(&settings).unwrap(),
+            is_released: false,
+        })
+        .execute(conn)?;
+
+    Ok(())
+}
+
+pub fn update(
+    id: i32,
+    new_info: ProblemInfo,
+    new_contents: ProblemContents,
+    new_settings: ProblemSettings,
+    pool: web::Data<Pool>,
+) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::problems as problems_schema;
+    diesel::update(problems_schema::table.filter(problems_schema::id.eq(id)))
+        .set(ProblemForm {
+            title: new_info.title,
+            tags: new_info.tags,
+            difficulty: new_info.difficulty,
+            contents: serde_json::to_string(&new_contents).unwrap(),
+            settings: serde_json::to_string(&new_settings).unwrap(),
+        })
+        .execute(conn)?;
+
+    Ok(())
+}
