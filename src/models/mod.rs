@@ -10,3 +10,5 @@ pub mod submissions;
 pub mod users;
 pub mod utils;
 pub mod contests;
+pub mod region_access_settings;
+pub mod access_control_list;

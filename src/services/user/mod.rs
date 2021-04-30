@@ -1,4 +1,4 @@
-mod utils;
+pub mod utils;
 
 use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
