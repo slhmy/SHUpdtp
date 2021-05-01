@@ -105,6 +105,7 @@ impl From<RawProblem> for SlimProblem {
 pub struct OutProblem {
     pub id: i32,
     pub info: ProblemInfo,
+    pub is_released: bool,
 }
 
 impl From<RawProblem> for OutProblem {
@@ -116,6 +117,7 @@ impl From<RawProblem> for OutProblem {
                 tags: raw.tags,
                 difficulty: raw.difficulty,
             },
+            is_released: raw.is_released,
         }
     }
 }

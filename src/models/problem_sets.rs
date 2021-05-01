@@ -17,6 +17,7 @@ pub struct RawProblemSetColumn {
     pub problem_title: String,
     pub problem_tags: Vec<String>,
     pub problem_difficulty: f64,
+    pub is_released: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,6 +94,7 @@ pub fn get_column_from_raw(
                 tags: raw.problem_tags,
                 difficulty: raw.problem_difficulty,
             },
+            is_released: raw.is_released,
         },
         submit_times: submit_times,
         accept_times: accept_times,

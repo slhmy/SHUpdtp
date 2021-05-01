@@ -166,6 +166,7 @@ pub fn get_item_list(
         problems_schema::title,
         problems_schema::tags,
         problems_schema::difficulty,
+        problems_schema::is_released,
     ));
 
     let columns: Vec<RawProblemSetColumn> = match id_order {
