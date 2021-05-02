@@ -4,7 +4,7 @@ use crate::models::contests::*;
 use crate::models::region_access_settings::*;
 use crate::models::regions::*;
 use crate::models::utils::SizedList;
-use crate::services::user::utils;
+use crate::auth::encryption;
 use actix_web::web;
 use chrono::*;
 use diesel::prelude::*;
@@ -48,8 +48,8 @@ pub fn create(
 
     if let Some(inner_data) = password {
         let (salt, hash) = {
-            let salt = utils::make_salt();
-            let hash = utils::make_hash(&inner_data, &salt).to_vec();
+            let salt = encryption::make_salt();
+            let hash = encryption::make_hash(&inner_data, &salt).to_vec();
             (Some(salt), Some(hash))
         };
 

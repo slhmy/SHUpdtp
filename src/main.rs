@@ -17,6 +17,7 @@ mod schema;
 mod services;
 mod statics;
 mod utils;
+mod auth;
 
 use actix_cors::Cors;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
