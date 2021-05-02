@@ -1,8 +1,8 @@
+use crate::auth::encryption;
 use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::users::*;
 use crate::models::utils::SizedList;
-use crate::auth::encryption;
 use actix_web::web;
 use diesel::prelude::*;
 

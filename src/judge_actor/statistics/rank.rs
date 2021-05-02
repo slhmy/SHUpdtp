@@ -8,5 +8,4 @@ pub fn update_column(
     mongodb_database: MongoDB,
     submission: submissions::Submission,
 ) {
-
 }

@@ -1,10 +1,10 @@
+use crate::auth::encryption;
 use crate::database::{db_connection, Pool, SyncMongo};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::contests::*;
 use crate::models::region_access_settings::*;
 use crate::models::regions::*;
 use crate::models::utils::SizedList;
-use crate::auth::encryption;
 use actix_web::web;
 use chrono::*;
 use diesel::prelude::*;
