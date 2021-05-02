@@ -1,3 +1,5 @@
+pub mod utils;
+
 use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::judge_actor::JudgeActorAddr;
