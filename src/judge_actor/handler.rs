@@ -1,4 +1,4 @@
-use super::statistics::common_region;
+use super::statistics::*;
 use super::utils::*;
 use super::JudgeActor;
 use crate::models::*;
@@ -138,6 +138,12 @@ impl Handler<StartJudge> for JudgeActor {
                     submission.clone(),
                     result_set.clone(),
                 );
+
+                rank::update_column(
+                    &self.db_connection,
+                    self.mongodb_database.clone(),
+                    submission.clone(),
+                )
             }
 
             queue_size = {
