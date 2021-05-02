@@ -96,7 +96,7 @@ pub fn get_contest_list(
         .limit(limit.into())
         .load::<RawContest>(conn)?;
 
-    let res = Vec::new();
+    let mut res = Vec::new();
     for raw_contest in raw_contests {
         let mut t = SlimContest::from(raw_contest);
 
