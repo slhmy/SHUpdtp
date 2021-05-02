@@ -26,7 +26,7 @@ pub fn create(
     diesel::insert_into(regions_schema::table)
         .values(&Region {
             name: region.clone(),
-            self_type: "problem_set".to_owned(),
+            self_type: "contest".to_owned(),
             title: title.clone(),
             has_access_policy: false,
             introduction: introduction.clone(),
