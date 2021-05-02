@@ -122,6 +122,8 @@ pub fn get_contest_list(
                 t.is_registered = true;
             }
         }
+
+        res.push(t);
     }
 
     Ok(SizedList {
