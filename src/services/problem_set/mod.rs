@@ -21,6 +21,8 @@ pub fn create(
             name: region.clone(),
             self_type: "problem_set".to_owned(),
             title: title.clone(),
+            has_access_policy: false,
+            introduction: introduction.clone(),
         })
         .execute(conn)?;
 
@@ -164,6 +166,7 @@ pub fn get_item_list(
         problems_schema::title,
         problems_schema::tags,
         problems_schema::difficulty,
+        problems_schema::is_released,
     ));
 
     let columns: Vec<RawProblemSetColumn> = match id_order {

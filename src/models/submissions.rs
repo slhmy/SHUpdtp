@@ -195,6 +195,7 @@ pub struct RawSubmission {
     pub max_memory: Option<i32>,
     pub language: Option<String>,
     pub err: Option<String>,
+    pub out_results: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Insertable, Queryable)]
@@ -265,7 +266,7 @@ pub struct SlimSubmission {
     pub user_id: i32,
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
-    pub result: Option<String>,
+    pub out_results: Option<Vec<String>>,
     pub max_time: Option<i32>,
     pub max_memory: Option<i32>,
     pub language: Option<String>,
@@ -274,35 +275,12 @@ pub struct SlimSubmission {
 
 impl From<RawSubmission> for SlimSubmission {
     fn from(raw: RawSubmission) -> Self {
-        let judege_result = if raw.result.is_some() {
-            Some(serde_json::from_str::<JudgeResult>(&raw.result.unwrap()).unwrap())
-        } else {
-            None
-        };
-
-        let result: Option<String> = if judege_result.is_some() {
-            if judege_result.clone().unwrap().err.is_none() {
-                let mut tmp = String::new();
-                for raw_detail in judege_result.unwrap().details.unwrap() {
-                    if raw_detail.result != "SUCCESS" {
-                        tmp = raw_detail.result;
-                        break;
-                    }
-                }
-                Some(tmp)
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-
         Self {
             problem_id: raw.problem_id,
             user_id: raw.user_id,
             submit_time: raw.submit_time,
             is_accepted: raw.is_accepted,
-            result: result,
+            out_results: raw.out_results,
             max_time: raw.max_time,
             max_memory: raw.max_memory,
             language: raw.language,

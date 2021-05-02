@@ -67,7 +67,7 @@ async fn main() -> std::io::Result<()> {
                     // .domain(&domain)
                     // Time from creation that cookie remains valid
                     .max_age_time(auth_duration)
-                    .same_site(actix_web::cookie::SameSite::None)
+                    // .same_site(actix_web::cookie::SameSite::None)
                     // Restricted to https?
                     .secure(false),
             ))
@@ -79,6 +79,7 @@ async fn main() -> std::io::Result<()> {
             .configure(controllers::samples::route)
             .configure(controllers::regions::route)
             .configure(controllers::problem_sets::route)
+            .configure(controllers::contests::route)
     })
     .bind(("0.0.0.0", opt.port))
     .unwrap()

@@ -1,4 +1,23 @@
 table! {
+    access_control_list (region, user_id) {
+        user_id -> Int4,
+        region -> Text,
+    }
+}
+
+table! {
+    contests (region) {
+        region -> Text,
+        title -> Text,
+        introduction -> Nullable<Text>,
+        start_time -> Nullable<Timestamp>,
+        end_time -> Nullable<Timestamp>,
+        seal_time -> Nullable<Timestamp>,
+        settings -> Text,
+    }
+}
+
+table! {
     problem_sets (region) {
         region -> Text,
         title -> Text,
@@ -19,7 +38,7 @@ table! {
 }
 
 table! {
-    region_access_lists (region) {
+    region_access_settings (region) {
         region -> Text,
         salt -> Nullable<Varchar>,
         hash -> Nullable<Bytea>,
@@ -40,6 +59,8 @@ table! {
         name -> Text,
         self_type -> Text,
         title -> Text,
+        has_access_policy -> Bool,
+        introduction -> Nullable<Text>,
     }
 }
 
@@ -66,6 +87,7 @@ table! {
         max_memory -> Nullable<Int4>,
         language -> Nullable<Text>,
         err -> Nullable<Text>,
+        out_results -> Nullable<Array<Text>>,
     }
 }
 
@@ -81,9 +103,11 @@ table! {
 }
 
 allow_tables_to_appear_in_same_query!(
+    access_control_list,
+    contests,
     problem_sets,
     problems,
-    region_access_lists,
+    region_access_settings,
     region_links,
     regions,
     samples,
