@@ -1,12 +1,12 @@
 use crate::database::{Pool, SyncMongo};
 use crate::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
-use crate::models::users::LoggedUser;
 use crate::models::contests::*;
+use crate::models::users::LoggedUser;
 use crate::services::contest;
 use crate::services::region;
-use chrono::*;
 use actix_web::{delete, get, post, put, web, HttpResponse};
+use chrono::*;
 
 #[derive(Deserialize)]
 pub struct CreateContestBody {
@@ -82,8 +82,10 @@ pub async fn get_contest_list(
             query.offset,
             if let Some(user) = logged_user.0 {
                 Some(user.id)
-            } else { None },
-            pool
+            } else {
+                None
+            },
+            pool,
         )
     })
     .await

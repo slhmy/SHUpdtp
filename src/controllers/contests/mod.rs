@@ -7,6 +7,6 @@ pub fn route(cfg: &mut web::ServiceConfig) {
         web::scope("/contests")
             .service(handler::create)
             .service(handler::insert_problems)
-            .service(handler::get_contest_list)
+            .service(handler::get_contest_list),
     );
 }

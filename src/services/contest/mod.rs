@@ -1,13 +1,13 @@
 use crate::database::{db_connection, Pool, SyncMongo};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::contests::*;
-use crate::models::regions::*;
 use crate::models::region_access_settings::*;
+use crate::models::regions::*;
 use crate::models::utils::SizedList;
 use crate::services::user::utils;
 use actix_web::web;
-use diesel::prelude::*;
 use chrono::*;
+use diesel::prelude::*;
 
 pub fn create(
     region: String,
@@ -45,7 +45,7 @@ pub fn create(
             settings: serde_json::to_string(&settings).unwrap(),
         })
         .execute(conn)?;
-    
+
     if let Some(inner_data) = password {
         let (salt, hash) = {
             let salt = utils::make_salt();
@@ -104,7 +104,8 @@ pub fn get_contest_list(
         if region_access_settings_schema::table
             .filter(region_access_settings_schema::region.eq(t.region.clone()))
             .count()
-            .get_result::<i64>(conn)? > 0 
+            .get_result::<i64>(conn)?
+            > 0
         {
             t.need_pass = true;
         }
@@ -115,7 +116,8 @@ pub fn get_contest_list(
                 .filter(access_control_list_schema::region.eq(t.region.clone()))
                 .filter(access_control_list_schema::user_id.eq(inner_data))
                 .count()
-                .get_result::<i64>(conn)? > 0 
+                .get_result::<i64>(conn)?
+                > 0
             {
                 t.is_registered = true;
             }
