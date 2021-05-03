@@ -1,6 +1,8 @@
 use crate::errors::*;
-use crate::utils::get_cur_naive_date_time;
+use crate::models::users::LoggedUser;
 use diesel::prelude::*;
+use crate::database::{Pool, db_connection};
+use actix_web::web;
 
 pub fn have_access_setting(conn: &PgConnection, region: String) -> ServiceResult<bool> {
     use crate::schema::region_access_settings as region_access_settings_schema;
@@ -35,13 +37,22 @@ pub fn check_acl(conn: &PgConnection, user_id: i32, region: String) -> ServiceRe
 }
 
 // have right to get colume to see problem list
-pub fn check_view_right(conn: &PgConnection, user_id: i32, region: String) -> ServiceResult<()> {
+pub fn check_view_right(
+    pool: web::Data<Pool>,
+    logged_user: LoggedUser,
+    region: String,
+) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
     use crate::schema::regions as regions_schema;
     let region_type = regions_schema::table
         .filter(regions_schema::name.eq(region.clone()))
         .select(regions_schema::self_type)
         .first::<String>(conn)?;
     if &region_type == "contest" {
+        if logged_user.0.is_none() {
+            return Err(ServiceError::Unauthorized);
+        }
+
         use crate::models::contests;
         use crate::schema::contests as contests_schema;
 
@@ -70,11 +81,29 @@ pub fn check_view_right(conn: &PgConnection, user_id: i32, region: String) -> Se
             _ => (),
         }
     }
-    check_acl(conn, user_id, region)
+    if have_access_setting(conn, region.clone())? {
+        if let Some(user) = logged_user.0 {
+            check_acl(conn, user.id, region)
+        } else {
+            let hint = "Veiwing region which has access settings need to be logged in.".to_owned();
+            return Err(ServiceError::UnauthorizedWithHint(hint));
+        }
+    } else {
+        Ok(())
+    }
 }
 
 // have right to see problem detail and submit in region
-pub fn check_solve_right(conn: &PgConnection, user_id: i32, region: String) -> ServiceResult<()> {
+pub fn check_solve_right(
+    pool: web::Data<Pool>,
+    logged_user: LoggedUser,
+    region: String,
+) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+
     use crate::schema::regions as regions_schema;
     let region_type = regions_schema::table
         .filter(regions_schema::name.eq(region.clone()))
@@ -105,5 +134,10 @@ pub fn check_solve_right(conn: &PgConnection, user_id: i32, region: String) -> S
             _ => (),
         }
     }
-    check_acl(conn, user_id, region)
+    if have_access_setting(conn, region.clone())? {
+        let user = logged_user.0.unwrap();
+        check_acl(conn, user.id, region)
+    } else {
+        Ok(())
+    }
 }

@@ -130,7 +130,6 @@ pub async fn insert_problems(
     Ok(HttpResponse::Ok().json(&res))
 }
 
-/*
 #[derive(Deserialize)]
 pub struct GetContestColumnListParams {
     inner_id_filter: Option<i32>,
@@ -145,6 +144,7 @@ pub struct GetContestColumnListParams {
     offset: i32,
 }
 
+/*
 #[get("/{region}")]
 pub async fn get_item_list(
     web::Path(region): web::Path<String>,
