@@ -1,4 +1,5 @@
 use crate::auth::encryption;
+use crate::auth::region as region_access;
 use crate::database::{db_connection, Pool, SyncMongo};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::contests::*;
@@ -100,25 +101,12 @@ pub fn get_contest_list(
     for raw_contest in raw_contests {
         let mut t = SlimContest::from(raw_contest);
 
-        use crate::schema::region_access_settings as region_access_settings_schema;
-        if region_access_settings_schema::table
-            .filter(region_access_settings_schema::region.eq(t.region.clone()))
-            .count()
-            .get_result::<i64>(conn)?
-            > 0
-        {
+        if region_access::have_access_setting(conn, t.region.clone())? {
             t.need_pass = true;
         }
 
         if let Some(inner_data) = user_id {
-            use crate::schema::access_control_list as access_control_list_schema;
-            if access_control_list_schema::table
-                .filter(access_control_list_schema::region.eq(t.region.clone()))
-                .filter(access_control_list_schema::user_id.eq(inner_data))
-                .count()
-                .get_result::<i64>(conn)?
-                > 0
-            {
+            if region_access::check_acl(conn, inner_data, t.region.clone()).is_ok() {
                 t.is_registered = true;
             }
         }

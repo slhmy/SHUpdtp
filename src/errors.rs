@@ -16,6 +16,9 @@ pub enum ServiceError {
     #[error("Unauthorized")]
     Unauthorized,
 
+    #[error("Unauthorized: {0}")]
+    UnauthorizedWithHint(String),
+
     #[error("Unable to connect to DB")]
     UnableToConnectToDb,
 }
@@ -30,6 +33,9 @@ impl ResponseError for ServiceError {
             ServiceError::UnableToConnectToDb => HttpResponse::InternalServerError()
                 .json("Unable to connect to DB, Please try later"),
             ServiceError::BadRequest(ref message) => HttpResponse::BadRequest().json(message),
+            ServiceError::UnauthorizedWithHint(ref message) => {
+                HttpResponse::Unauthorized().json(message)
+            }
             ServiceError::Unauthorized => HttpResponse::Unauthorized().json("Unauthorized"),
         }
     }
