@@ -21,6 +21,11 @@ pub fn create(
     password: Option<String>,
     pool: web::Data<Pool>,
 ) -> ServiceResult<()> {
+    if !is_settings_legal(settings.clone()) {
+        let hint = "Settings not legal".to_owned();
+        return Err(ServiceError::BadRequest(hint));
+    }
+
     let conn = &db_connection(&pool)?;
 
     use crate::schema::regions as regions_schema;

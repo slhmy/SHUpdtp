@@ -22,11 +22,12 @@ pub struct Contest {
     pub end_time: Option<NaiveDateTime>,
     pub seal_time: Option<NaiveDateTime>,
     pub settings: ContestSettings,
+    pub state: String,
 }
 
 impl From<RawContest> for Contest {
     fn from(raw: RawContest) -> Self {
-        Self {
+        let mut res = Self {
             region: raw.region,
             title: raw.title,
             introduction: raw.introduction,
@@ -34,7 +35,10 @@ impl From<RawContest> for Contest {
             end_time: raw.end_time,
             seal_time: raw.seal_time,
             settings: serde_json::from_str(&raw.settings).unwrap(),
-        }
+            state: format!("{}", ContestState::Ended),
+        };
+        res.state = format!("{}", get_contest_state(res.clone()));
+        res
     }
 }
 
@@ -62,21 +66,19 @@ pub struct ContestSettings {
 
 impl From<RawContest> for SlimContest {
     fn from(raw: RawContest) -> Self {
-        let mut res = Self {
-            region: raw.region,
-            title: raw.title,
-            introduction: raw.introduction,
-            start_time: raw.start_time,
-            end_time: raw.end_time,
-            seal_time: raw.seal_time,
-            state: stringify!(ContestState::Ended).to_owned(),
+        let contest = Contest::from(raw);
+
+        Self {
+            region: contest.region,
+            title: contest.title,
+            introduction: contest.introduction,
+            start_time: contest.start_time,
+            end_time: contest.end_time,
+            seal_time: contest.seal_time,
+            state: contest.state,
             is_registered: false,
             need_pass: false,
-        };
-
-        res.state = stringify!(get_contest_state(res.clone())).to_owned();
-
-        res
+        }
     }
 }
 
@@ -97,6 +99,18 @@ pub enum ContestState {
     Running,
     SealedRunning,
     Ended,
+}
+
+use std::fmt;
+impl fmt::Display for ContestState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ContestState::Preparing => f.write_str("Preparing"),
+            ContestState::Running => f.write_str("Running"),
+            ContestState::SealedRunning => f.write_str("SealedRunning"),
+            ContestState::Ended => f.write_str("Ended"),
+        }
+    }
 }
 
 pub fn is_settings_legal(settings: ContestSettings) -> bool {
