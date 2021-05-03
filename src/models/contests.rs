@@ -46,6 +46,7 @@ pub struct SlimContest {
     pub start_time: Option<NaiveDateTime>,
     pub end_time: Option<NaiveDateTime>,
     pub seal_time: Option<NaiveDateTime>,
+    pub state: String,
     pub is_registered: bool,
     pub need_pass: bool,
 }
@@ -61,16 +62,21 @@ pub struct ContestSettings {
 
 impl From<RawContest> for SlimContest {
     fn from(raw: RawContest) -> Self {
-        Self {
+        let mut res = Self {
             region: raw.region,
             title: raw.title,
             introduction: raw.introduction,
             start_time: raw.start_time,
             end_time: raw.end_time,
             seal_time: raw.seal_time,
+            state: stringify!(ContestState::Ended).to_owned(),
             is_registered: false,
             need_pass: false,
-        }
+        };
+
+        res.state = stringify!(get_contest_state(res.clone())).to_owned();
+
+        res
     }
 }
 
