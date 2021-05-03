@@ -1,8 +1,8 @@
+use crate::database::{db_connection, Pool};
 use crate::errors::*;
 use crate::models::users::LoggedUser;
-use diesel::prelude::*;
-use crate::database::{Pool, db_connection};
 use actix_web::web;
+use diesel::prelude::*;
 
 pub fn have_access_setting(conn: &PgConnection, region: String) -> ServiceResult<bool> {
     use crate::schema::region_access_settings as region_access_settings_schema;
