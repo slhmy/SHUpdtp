@@ -2,6 +2,7 @@ use crate::database::{db_connection, Pool};
 use crate::errors::*;
 use crate::models::region_access_settings::RegionAccessSetting;
 use crate::models::users::LoggedUser;
+use crate::services::region::utils::get_self_type;
 use actix_web::web;
 use diesel::prelude::*;
 
@@ -54,11 +55,8 @@ pub fn check_view_right(
     region: String,
 ) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
-    use crate::schema::regions as regions_schema;
-    let region_type = regions_schema::table
-        .filter(regions_schema::name.eq(region.clone()))
-        .select(regions_schema::self_type)
-        .first::<String>(conn)?;
+
+    let region_type = get_self_type(region.clone(), pool.clone())?;
     if &region_type == "contest" {
         if logged_user.0.is_none() {
             return Err(ServiceError::Unauthorized);
@@ -115,11 +113,7 @@ pub fn check_solve_right(
         return Err(ServiceError::Unauthorized);
     }
 
-    use crate::schema::regions as regions_schema;
-    let region_type = regions_schema::table
-        .filter(regions_schema::name.eq(region.clone()))
-        .select(regions_schema::self_type)
-        .first::<String>(conn)?;
+    let region_type = get_self_type(region.clone(), pool.clone())?;
     if &region_type == "contest" {
         use crate::models::contests;
         use crate::schema::contests as contests_schema;

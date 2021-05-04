@@ -1,5 +1,5 @@
 use crate::auth::region::*;
-use crate::database::{db_connection, Pool, SyncMongo};
+use crate::database::{Pool, SyncMongo};
 use crate::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::users::LoggedUser;
