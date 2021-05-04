@@ -1,10 +1,8 @@
-use crate::database::{Pool, SyncMongo};
+use crate::database::Pool;
 use crate::errors::ServiceError;
-use crate::judge_actor::JudgeActorAddr;
 use crate::models::contests::*;
 use crate::models::users::LoggedUser;
 use crate::services::contest;
-use crate::services::region;
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use chrono::*;
 
@@ -85,6 +83,40 @@ pub async fn get_contest_list(
             } else {
                 None
             },
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[derive(Deserialize)]
+pub struct RegisterToRegionBody {
+    password: Option<String>,
+}
+
+#[post("/{region}/register")]
+pub async fn register(
+    web::Path(region): web::Path<String>,
+    body: web::Json<RegisterToRegionBody>,
+    pool: web::Data<Pool>,
+    logged_user: LoggedUser,
+) -> Result<HttpResponse, ServiceError> {
+    info!("{:?}", logged_user.0);
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+
+    let res = web::block(move || {
+        contest::register(
+            region,
+            body.password.clone(),
+            logged_user.0.unwrap().id,
             pool,
         )
     })

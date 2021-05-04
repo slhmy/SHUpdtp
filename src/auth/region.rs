@@ -1,6 +1,6 @@
 use crate::database::{db_connection, Pool};
 use crate::errors::*;
-use crate::models::region_access_settings::RegionAccessSettings;
+use crate::models::region_access_settings::RegionAccessSetting;
 use crate::models::users::LoggedUser;
 use actix_web::web;
 use diesel::prelude::*;
@@ -22,12 +22,12 @@ pub fn has_access_setting(conn: &PgConnection, region: String) -> ServiceResult<
 pub fn read_access_setting(
     conn: &PgConnection,
     region: String,
-) -> ServiceResult<RegionAccessSettings> {
+) -> ServiceResult<RegionAccessSetting> {
     use crate::schema::region_access_settings as region_access_settings_schema;
 
     Ok(region_access_settings_schema::table
         .filter(region_access_settings_schema::region.eq(region))
-        .first::<RegionAccessSettings>(conn)?)
+        .first::<RegionAccessSetting>(conn)?)
 }
 
 pub fn check_acl(conn: &PgConnection, user_id: i32, region: String) -> ServiceResult<()> {

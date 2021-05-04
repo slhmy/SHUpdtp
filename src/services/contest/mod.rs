@@ -2,8 +2,9 @@ pub mod utils;
 
 use crate::auth::encryption;
 use crate::auth::region as region_access;
-use crate::database::{db_connection, Pool, SyncMongo};
+use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
+use crate::models::access_control_list::*;
 use crate::models::contests::*;
 use crate::models::region_access_settings::*;
 use crate::models::regions::*;
@@ -63,7 +64,7 @@ pub fn create(
 
     use crate::schema::region_access_settings as region_access_settings_schema;
     diesel::insert_into(region_access_settings_schema::table)
-        .values(&RegionAccessSettings {
+        .values(&RegionAccessSetting {
             region: region,
             salt: salt,
             hash: hash,
@@ -125,4 +126,37 @@ pub fn get_contest_list(
         total: total,
         list: res,
     })
+}
+
+pub fn register(
+    region: String,
+    maybe_password: Option<String>,
+    user_id: i32,
+    pool: web::Data<Pool>,
+) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::region_access_settings as region_access_settings_schema;
+    let region_access_setting: RegionAccessSetting = region_access_settings_schema::table
+        .filter(region_access_settings_schema::region.eq(region.clone()))
+        .first(conn)?;
+
+    if let Some(password) = maybe_password {
+        let hash =
+            encryption::make_hash(&password, &region_access_setting.clone().salt.unwrap()).to_vec();
+        if Some(hash) != region_access_setting.hash {
+            let hint = "Password is wrong.".to_string();
+            return Err(ServiceError::BadRequest(hint));
+        }
+    } else {
+        let hint = "Password not given.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
+
+    use crate::schema::access_control_list as access_control_list_schema;
+    diesel::insert_into(access_control_list_schema::table)
+        .values(&AcessControlList { region, user_id })
+        .execute(conn)?;
+
+    Ok(())
 }
