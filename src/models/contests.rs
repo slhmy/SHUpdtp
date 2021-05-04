@@ -55,15 +55,6 @@ pub struct SlimContest {
     pub need_pass: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContestSettings {
-    pub register_after_start: bool,
-    pub view_before_start: bool,
-    pub view_after_end: bool,
-    pub public_after_end: bool,
-    pub submit_after_end: bool,
-}
-
 impl From<RawContest> for SlimContest {
     fn from(raw: RawContest) -> Self {
         let contest = Contest::from(raw);
@@ -80,6 +71,15 @@ impl From<RawContest> for SlimContest {
             need_pass: false,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ContestSettings {
+    pub register_after_start: bool,
+    pub view_before_start: bool,
+    pub view_after_end: bool,
+    pub public_after_end: bool,
+    pub submit_after_end: bool,
 }
 
 impl Default for ContestSettings {
@@ -111,13 +111,6 @@ impl fmt::Display for ContestState {
             ContestState::Ended => f.write_str("Ended"),
         }
     }
-}
-
-pub fn is_settings_legal(settings: ContestSettings) -> bool {
-    if !settings.view_after_end && settings.public_after_end {
-        return false;
-    }
-    true
 }
 
 pub fn get_contest_state(contest: Contest) -> ContestState {

@@ -1,22 +1,33 @@
 use crate::database::{db_connection, Pool};
 use crate::errors::*;
+use crate::models::region_access_settings::RegionAccessSettings;
 use crate::models::users::LoggedUser;
 use actix_web::web;
 use diesel::prelude::*;
 
-pub fn have_access_setting(conn: &PgConnection, region: String) -> ServiceResult<bool> {
-    use crate::schema::region_access_settings as region_access_settings_schema;
+pub fn has_access_setting(conn: &PgConnection, region: String) -> ServiceResult<bool> {
+    use crate::schema::regions as regions_schema;
 
-    if region_access_settings_schema::table
-        .filter(region_access_settings_schema::region.eq(region))
-        .count()
-        .get_result::<i64>(conn)?
-        > 0
+    if regions_schema::table
+        .filter(regions_schema::name.eq(region))
+        .select(regions_schema::has_access_setting)
+        .first::<bool>(conn)?
     {
         Ok(true)
     } else {
         Ok(false)
     }
+}
+
+pub fn read_access_setting(
+    conn: &PgConnection,
+    region: String,
+) -> ServiceResult<RegionAccessSettings> {
+    use crate::schema::region_access_settings as region_access_settings_schema;
+
+    Ok(region_access_settings_schema::table
+        .filter(region_access_settings_schema::region.eq(region))
+        .first::<RegionAccessSettings>(conn)?)
 }
 
 pub fn check_acl(conn: &PgConnection, user_id: i32, region: String) -> ServiceResult<()> {
@@ -81,7 +92,7 @@ pub fn check_view_right(
             _ => (),
         }
     }
-    if have_access_setting(conn, region.clone())? {
+    if has_access_setting(conn, region.clone())? {
         if let Some(user) = logged_user.0 {
             check_acl(conn, user.id, region)
         } else {
@@ -134,7 +145,7 @@ pub fn check_solve_right(
             _ => (),
         }
     }
-    if have_access_setting(conn, region.clone())? {
+    if has_access_setting(conn, region.clone())? {
         let user = logged_user.0.unwrap();
         check_acl(conn, user.id, region)
     } else {

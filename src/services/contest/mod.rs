@@ -1,3 +1,5 @@
+pub mod utils;
+
 use crate::auth::encryption;
 use crate::auth::region as region_access;
 use crate::database::{db_connection, Pool, SyncMongo};
@@ -21,10 +23,7 @@ pub fn create(
     password: Option<String>,
     pool: web::Data<Pool>,
 ) -> ServiceResult<()> {
-    if !is_settings_legal(settings.clone()) {
-        let hint = "Settings not legal".to_owned();
-        return Err(ServiceError::BadRequest(hint));
-    }
+    utils::check_settings_legal(settings.clone())?;
 
     let conn = &db_connection(&pool)?;
 
@@ -34,7 +33,7 @@ pub fn create(
             name: region.clone(),
             self_type: "contest".to_owned(),
             title: title.clone(),
-            has_access_policy: false,
+            has_access_setting: true,
             introduction: introduction.clone(),
         })
         .execute(conn)?;
@@ -52,22 +51,24 @@ pub fn create(
         })
         .execute(conn)?;
 
-    if let Some(inner_data) = password {
-        let (salt, hash) = {
+    let (salt, hash) = {
+        if let Some(inner_data) = password {
             let salt = encryption::make_salt();
             let hash = encryption::make_hash(&inner_data, &salt).to_vec();
             (Some(salt), Some(hash))
-        };
+        } else {
+            (None, None)
+        }
+    };
 
-        use crate::schema::region_access_settings as region_access_settings_schema;
-        diesel::insert_into(region_access_settings_schema::table)
-            .values(&RegionAccessSettings {
-                region: region,
-                salt: salt,
-                hash: hash,
-            })
-            .execute(conn)?;
-    }
+    use crate::schema::region_access_settings as region_access_settings_schema;
+    diesel::insert_into(region_access_settings_schema::table)
+        .values(&RegionAccessSettings {
+            region: region,
+            salt: salt,
+            hash: hash,
+        })
+        .execute(conn)?;
 
     Ok(())
 }
@@ -106,7 +107,8 @@ pub fn get_contest_list(
     for raw_contest in raw_contests {
         let mut t = SlimContest::from(raw_contest);
 
-        if region_access::have_access_setting(conn, t.region.clone())? {
+        let access_setting = region_access::read_access_setting(conn, t.region.clone())?;
+        if access_setting.hash.is_some() {
             t.need_pass = true;
         }
 

@@ -59,7 +59,7 @@ table! {
         name -> Text,
         self_type -> Text,
         title -> Text,
-        has_access_policy -> Bool,
+        has_access_setting -> Bool,
         introduction -> Nullable<Text>,
     }
 }
