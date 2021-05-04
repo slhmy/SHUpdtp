@@ -31,8 +31,8 @@ pub fn count_results(
                         "submit_times": 0,
                         "accept_times": 0,
                         "error_times": 0,
-                        "max_time": 0,
-                        "max_memory": 0,
+                        "avg_max_time": 0,
+                        "avg_max_memory": 0,
                         "WRONG_ANSWER": 0,
                         "SUCCESS": 0,
                         "CPU_TIME_LIMIT_EXCEEDED": 0,
@@ -80,27 +80,27 @@ pub fn count_results(
                                 Some(_) => { 0 },
                                 None => 1
                             },
-                        "max_time": 
+                        "avg_max_time": 
                             match submission.is_accepted {
                                 Some(_) => {
                                     let accept_times = doc.get("accept_times").unwrap().as_i32().unwrap();
-                                    (doc.get("max_time").unwrap().as_i32().unwrap()
+                                    (doc.get("avg_max_time").unwrap().as_i32().unwrap()
                                     * accept_times
                                     + submission.max_time.unwrap())
                                     / (accept_times + 1)
                                 },
-                                None => doc.get("max_time").unwrap().as_i32().unwrap()
+                                None => doc.get("avg_max_time").unwrap().as_i32().unwrap()
                             },
-                        "max_memory": 
+                        "avg_max_memory": 
                             match submission.is_accepted {
                                 Some(_) => {
                                     let accept_times = doc.get("accept_times").unwrap().as_i32().unwrap();
-                                    (doc.get("max_memory").unwrap().as_i32().unwrap()
+                                    (doc.get("avg_max_memory").unwrap().as_i32().unwrap()
                                     * accept_times
                                     + submission.max_memory.unwrap())
                                     / (accept_times + 1)
                                 },
-                                None => doc.get("max_memory").unwrap().as_i32().unwrap()
+                                None => doc.get("avg_max_memory").unwrap().as_i32().unwrap()
                             },
                         "WRONG_ANSWER": if result_set.contains("WRONG_ANSWER") {
                             doc.get("WRONG_ANSWER").unwrap().as_i32().unwrap() + 1

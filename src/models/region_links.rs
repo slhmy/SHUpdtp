@@ -64,8 +64,8 @@ pub fn get_column_from_raw(
                     "submit_times": 0,
                     "accept_times": 0,
                     "error_times": 0,
-                    "max_time": 0,
-                    "max_memory": 0,
+                    "avg_max_time": 0,
+                    "avg_max_memory": 0,
                 },
                 None,
             )
