@@ -88,7 +88,7 @@ impl Default for ContestSettings {
         Self {
             register_after_start: true,
             unrate_after_start: true,
-            view_before_start: false,
+            view_before_start: true,
             view_after_end: true,
             public_after_end: false,
             submit_after_end: true,
