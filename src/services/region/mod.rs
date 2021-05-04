@@ -112,18 +112,6 @@ pub fn get_linked_problem_column_list(
 ) -> ServiceResult<SizedList<LinkedProblemColumn>> {
     let conn = &db_connection(&pool)?;
 
-    use crate::schema::regions as regions_schema;
-    if regions_schema::table
-        .filter(regions_schema::name.eq(region.clone()))
-        .filter(regions_schema::self_type.eq("problem_set".to_owned()))
-        .count()
-        .get_result::<i64>(conn)?
-        != 1
-    {
-        let hint = "Bad region.".to_string();
-        return Err(ServiceError::BadRequest(hint));
-    }
-
     let title_filter = if let Some(inner_data) = title_filter {
         Some(String::from("%") + &inner_data.as_str().replace(" ", "%") + "%")
     } else {

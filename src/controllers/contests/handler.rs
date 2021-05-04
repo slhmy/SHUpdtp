@@ -1,3 +1,4 @@
+use crate::auth::region::*;
 use crate::database::Pool;
 use crate::errors::ServiceError;
 use crate::models::contests::*;
@@ -125,6 +126,24 @@ pub async fn register(
         eprintln!("{}", e);
         e
     })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[get("/{region}/rank_acm")]
+pub async fn get_acm_rank(
+    web::Path(region): web::Path<String>,
+    pool: web::Data<Pool>,
+    logged_user: LoggedUser,
+) -> Result<HttpResponse, ServiceError> {
+    check_view_right(pool.clone(), logged_user.clone(), region.clone())?;
+
+    let res = web::block(move || contest::get_acm_rank(region, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

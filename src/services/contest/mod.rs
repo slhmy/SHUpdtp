@@ -6,9 +6,12 @@ use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::access_control_list::*;
 use crate::models::contests::*;
+use crate::models::ranks::*;
 use crate::models::region_access_settings::*;
 use crate::models::regions::*;
 use crate::models::utils::SizedList;
+use crate::services::rank::utils::update_acm_rank_cache;
+use crate::statics::ACM_RANK_CACHE;
 use crate::utils::get_cur_naive_date_time;
 use actix_web::web;
 use chrono::*;
@@ -187,4 +190,42 @@ pub fn register(
         .execute(conn)?;
 
     Ok(())
+}
+
+pub fn get_acm_rank(region: String, pool: web::Data<Pool>) -> ServiceResult<ACMRank> {
+    {
+        let conn = &db_connection(&pool)?;
+
+        use crate::schema::contests as contests_schema;
+        let contest = Contest::from(
+            contests_schema::table
+                .filter(contests_schema::region.eq(region.clone()))
+                .first::<RawContest>(conn)?,
+        );
+
+        let contest_state = get_contest_state(contest.clone(), get_cur_naive_date_time());
+
+        let rank_cache = ACM_RANK_CACHE.read().unwrap();
+        let is_final = if contest_state == ContestState::Ended {
+            true
+        } else {
+            false
+        };
+
+        // not been refreshed in a minute
+        if let Some(rank) = rank_cache.get(&region) {
+            if get_cur_naive_date_time().timestamp() - rank.last_updated_time.timestamp() > 60 {
+                update_acm_rank_cache(region.clone(), conn, is_final)?;
+            }
+        } else {
+            update_acm_rank_cache(region.clone(), conn, is_final)?;
+        }
+    }
+
+    Ok(ACM_RANK_CACHE
+        .read()
+        .unwrap()
+        .get(&region)
+        .unwrap()
+        .to_owned())
 }
