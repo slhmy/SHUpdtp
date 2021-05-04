@@ -76,6 +76,7 @@ impl From<RawContest> for SlimContest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContestSettings {
     pub register_after_start: bool,
+    pub unrate_after_start: bool,
     pub view_before_start: bool,
     pub view_after_end: bool,
     pub public_after_end: bool,
@@ -86,6 +87,7 @@ impl Default for ContestSettings {
     fn default() -> Self {
         Self {
             register_after_start: true,
+            unrate_after_start: true,
             view_before_start: false,
             view_after_end: true,
             public_after_end: false,
