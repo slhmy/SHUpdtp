@@ -2,6 +2,8 @@ use super::statistics::*;
 use super::utils::*;
 use super::JudgeActor;
 use crate::models::*;
+use crate::services::rank::utils::update_acm_rank_cache;
+use crate::services::region::utils::get_self_type;
 use crate::statics::JUDGE_SERVER_INFOS;
 use crate::statics::WAITING_QUEUE;
 use crate::utils::*;
@@ -139,11 +141,16 @@ impl Handler<StartJudge> for JudgeActor {
                     result_set.clone(),
                 );
 
-                rank::update_column(
-                    &self.db_connection,
-                    self.mongodb_database.clone(),
-                    submission.clone(),
-                )
+                if let Some(region) = submission.region.clone() {
+                    if get_self_type(region, &self.db_connection).unwrap() == "contest" {
+                        update_acm_rank_cache(
+                            submission.region.unwrap(),
+                            &self.db_connection,
+                            false,
+                        )
+                        .unwrap();
+                    }
+                }
             }
 
             queue_size = {

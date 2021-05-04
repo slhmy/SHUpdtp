@@ -9,6 +9,7 @@ use crate::models::contests::*;
 use crate::models::region_access_settings::*;
 use crate::models::regions::*;
 use crate::models::utils::SizedList;
+use crate::utils::get_cur_naive_date_time;
 use actix_web::web;
 use chrono::*;
 use diesel::prelude::*;
@@ -17,7 +18,7 @@ pub fn create(
     region: String,
     title: String,
     introduction: Option<String>,
-    start_time: Option<NaiveDateTime>,
+    start_time: NaiveDateTime,
     end_time: Option<NaiveDateTime>,
     seal_time: Option<NaiveDateTime>,
     settings: ContestSettings,
@@ -134,7 +135,30 @@ pub fn register(
     user_id: i32,
     pool: web::Data<Pool>,
 ) -> ServiceResult<()> {
+    let mut is_unrated = Some(true);
     let conn = &db_connection(&pool)?;
+
+    use crate::schema::contests as contests_schema;
+    let contest = Contest::from(
+        contests_schema::table
+            .filter(contests_schema::region.eq(region.clone()))
+            .first::<RawContest>(conn)?,
+    );
+
+    let contest_state = get_contest_state(contest.clone(), get_cur_naive_date_time());
+    if contest_state == ContestState::Running || contest_state == ContestState::SealedRunning {
+        if !contest.settings.register_after_start {
+            let hint = "Contest not allows to register after start.".to_string();
+            return Err(ServiceError::BadRequest(hint));
+        } else if contest.settings.unrate_after_start {
+            is_unrated = Some(false);
+        }
+    }
+
+    if contest_state == ContestState::Ended && !contest.settings.public_after_end {
+        let hint = "Contest not allows to register after end.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
 
     use crate::schema::region_access_settings as region_access_settings_schema;
     let region_access_setting: RegionAccessSetting = region_access_settings_schema::table
@@ -155,7 +179,11 @@ pub fn register(
 
     use crate::schema::access_control_list as access_control_list_schema;
     diesel::insert_into(access_control_list_schema::table)
-        .values(&AcessControlList { region, user_id })
+        .values(&AccessControlListColumn {
+            region,
+            user_id,
+            is_unrated,
+        })
         .execute(conn)?;
 
     Ok(())

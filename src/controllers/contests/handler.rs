@@ -11,7 +11,7 @@ pub struct CreateContestBody {
     region: String,
     title: String,
     introduction: Option<String>,
-    start_time: Option<NaiveDateTime>,
+    start_time: NaiveDateTime,
     end_time: Option<NaiveDateTime>,
     seal_time: Option<NaiveDateTime>,
     settings: Option<ContestSettings>,

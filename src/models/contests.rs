@@ -1,4 +1,5 @@
 use crate::schema::*;
+use crate::utils::get_cur_naive_date_time;
 use chrono::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Insertable, Queryable)]
@@ -7,7 +8,7 @@ pub struct RawContest {
     pub region: String,
     pub title: String,
     pub introduction: Option<String>,
-    pub start_time: Option<NaiveDateTime>,
+    pub start_time: NaiveDateTime,
     pub end_time: Option<NaiveDateTime>,
     pub seal_time: Option<NaiveDateTime>,
     pub settings: String,
@@ -18,7 +19,7 @@ pub struct Contest {
     pub region: String,
     pub title: String,
     pub introduction: Option<String>,
-    pub start_time: Option<NaiveDateTime>,
+    pub start_time: NaiveDateTime,
     pub end_time: Option<NaiveDateTime>,
     pub seal_time: Option<NaiveDateTime>,
     pub settings: ContestSettings,
@@ -37,7 +38,10 @@ impl From<RawContest> for Contest {
             settings: serde_json::from_str(&raw.settings).unwrap(),
             state: format!("{}", ContestState::Ended),
         };
-        res.state = format!("{}", get_contest_state(res.clone()));
+        res.state = format!(
+            "{}",
+            get_contest_state(res.clone(), get_cur_naive_date_time())
+        );
         res
     }
 }
@@ -47,7 +51,7 @@ pub struct SlimContest {
     pub region: String,
     pub title: String,
     pub introduction: Option<String>,
-    pub start_time: Option<NaiveDateTime>,
+    pub start_time: NaiveDateTime,
     pub end_time: Option<NaiveDateTime>,
     pub seal_time: Option<NaiveDateTime>,
     pub state: String,
@@ -96,6 +100,7 @@ impl Default for ContestSettings {
     }
 }
 
+#[derive(PartialEq)]
 pub enum ContestState {
     Preparing,
     Running,
@@ -115,39 +120,9 @@ impl fmt::Display for ContestState {
     }
 }
 
-pub fn get_contest_state(contest: Contest) -> ContestState {
-    use crate::utils::get_cur_naive_date_time;
-    let cur_time = get_cur_naive_date_time();
-    if let Some(start_time) = contest.start_time {
-        if cur_time < start_time {
-            ContestState::Preparing
-        } else {
-            if let Some(seal_time) = contest.seal_time {
-                if cur_time < seal_time {
-                    ContestState::Running
-                } else {
-                    if let Some(end_time) = contest.end_time {
-                        if cur_time < end_time {
-                            ContestState::SealedRunning
-                        } else {
-                            ContestState::Ended
-                        }
-                    } else {
-                        ContestState::SealedRunning
-                    }
-                }
-            } else {
-                if let Some(end_time) = contest.end_time {
-                    if cur_time < end_time {
-                        ContestState::Running
-                    } else {
-                        ContestState::Ended
-                    }
-                } else {
-                    ContestState::Running
-                }
-            }
-        }
+pub fn get_contest_state(contest: Contest, cur_time: NaiveDateTime) -> ContestState {
+    if cur_time < contest.start_time {
+        ContestState::Preparing
     } else {
         if let Some(seal_time) = contest.seal_time {
             if cur_time < seal_time {

@@ -3,6 +3,7 @@ use crate::errors::*;
 use crate::models::region_access_settings::RegionAccessSetting;
 use crate::models::users::LoggedUser;
 use crate::services::region::utils::get_self_type;
+use crate::utils::get_cur_naive_date_time;
 use actix_web::web;
 use diesel::prelude::*;
 
@@ -56,7 +57,7 @@ pub fn check_view_right(
 ) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
 
-    let region_type = get_self_type(region.clone(), pool.clone())?;
+    let region_type = get_self_type(region.clone(), conn)?;
     if &region_type == "contest" {
         if logged_user.0.is_none() {
             return Err(ServiceError::Unauthorized);
@@ -72,7 +73,7 @@ pub fn check_view_right(
         );
 
         use contests::ContestState::*;
-        match contests::get_contest_state(contest.clone()) {
+        match contests::get_contest_state(contest.clone(), get_cur_naive_date_time()) {
             Preparing => {
                 if !contest.settings.view_before_start {
                     let hint = "Contest do not allows viewing before start.".to_owned();
@@ -113,7 +114,7 @@ pub fn check_solve_right(
         return Err(ServiceError::Unauthorized);
     }
 
-    let region_type = get_self_type(region.clone(), pool.clone())?;
+    let region_type = get_self_type(region.clone(), conn)?;
     if &region_type == "contest" {
         use crate::models::contests;
         use crate::schema::contests as contests_schema;
@@ -125,7 +126,7 @@ pub fn check_solve_right(
         );
 
         use contests::ContestState::*;
-        match contests::get_contest_state(contest.clone()) {
+        match contests::get_contest_state(contest.clone(), get_cur_naive_date_time()) {
             Preparing => {
                 let hint = "Contest do not allows visiting problems before start.".to_owned();
                 return Err(ServiceError::UnauthorizedWithHint(hint));

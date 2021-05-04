@@ -113,12 +113,13 @@ pub fn get_linked_problem_column_list(
     let conn = &db_connection(&pool)?;
 
     use crate::schema::regions as regions_schema;
-    let count: i64 = regions_schema::table
+    if regions_schema::table
         .filter(regions_schema::name.eq(region.clone()))
         .filter(regions_schema::self_type.eq("problem_set".to_owned()))
         .count()
-        .get_result(conn)?;
-    if count != 1 {
+        .get_result::<i64>(conn)?
+        != 1
+    {
         let hint = "Bad region.".to_string();
         return Err(ServiceError::BadRequest(hint));
     }

@@ -2,6 +2,7 @@ pub mod contest;
 pub mod judge_server;
 pub mod problem;
 pub mod problem_set;
+pub mod rank;
 pub mod region;
 pub mod sample;
 pub mod submission;
