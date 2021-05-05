@@ -14,6 +14,7 @@ pub fn update_acm_rank_cache(
     conn: &PgConnection,
     is_final: bool,
 ) -> ServiceResult<()> {
+    log::info!("Updating acm rank");
     if &get_self_type(region.clone(), conn)? != "contest" {
         return Ok(());
     }

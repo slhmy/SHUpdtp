@@ -193,33 +193,39 @@ pub fn register(
 }
 
 pub fn get_acm_rank(region: String, pool: web::Data<Pool>) -> ServiceResult<ACMRank> {
-    {
-        let conn = &db_connection(&pool)?;
+    let conn = &db_connection(&pool)?;
 
-        use crate::schema::contests as contests_schema;
-        let contest = Contest::from(
-            contests_schema::table
-                .filter(contests_schema::region.eq(region.clone()))
-                .first::<RawContest>(conn)?,
-        );
+    use crate::schema::contests as contests_schema;
+    let contest = Contest::from(
+        contests_schema::table
+            .filter(contests_schema::region.eq(region.clone()))
+            .first::<RawContest>(conn)?,
+    );
 
-        let contest_state = get_contest_state(contest.clone(), get_cur_naive_date_time());
+    let contest_state = get_contest_state(contest.clone(), get_cur_naive_date_time());
+    let is_final = if contest_state == ContestState::Ended {
+        true
+    } else {
+        false
+    };
 
+    let need_update = {
         let rank_cache = ACM_RANK_CACHE.read().unwrap();
-        let is_final = if contest_state == ContestState::Ended {
-            true
-        } else {
-            false
-        };
 
         // not been refreshed in a minute
         if let Some(rank) = rank_cache.get(&region) {
             if get_cur_naive_date_time().timestamp() - rank.last_updated_time.timestamp() > 60 {
-                update_acm_rank_cache(region.clone(), conn, is_final)?;
+                true
+            } else {
+                false
             }
         } else {
-            update_acm_rank_cache(region.clone(), conn, is_final)?;
+            true
         }
+    };
+
+    if need_update {
+        update_acm_rank_cache(region.clone(), conn, is_final)?;
     }
 
     Ok(ACM_RANK_CACHE
