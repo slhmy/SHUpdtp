@@ -73,3 +73,38 @@ pub fn get_set_list(
         list: res,
     })
 }
+
+pub fn delete(region: String, pool: web::Data<Pool>) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::regions as regions_schema;
+    diesel::delete(
+        regions_schema::table.filter(
+            regions_schema::name
+                .eq(region.clone())
+                .and(regions_schema::self_type.eq("problem_set")),
+        ),
+    )
+    .execute(conn)?;
+
+    use crate::schema::problem_sets as problem_sets_schema;
+    diesel::delete(
+        problem_sets_schema::table.filter(problem_sets_schema::region.eq(region.clone())),
+    )
+    .execute(conn)?;
+
+    use crate::schema::region_access_settings as region_access_settings_schema;
+    diesel::delete(
+        region_access_settings_schema::table
+            .filter(region_access_settings_schema::region.eq(region.clone())),
+    )
+    .execute(conn)?;
+
+    use crate::schema::region_links as region_links_schema;
+    diesel::delete(
+        region_links_schema::table.filter(region_links_schema::region.eq(region.clone())),
+    )
+    .execute(conn)?;
+
+    Ok(())
+}
