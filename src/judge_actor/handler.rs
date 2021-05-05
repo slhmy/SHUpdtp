@@ -41,25 +41,43 @@ impl Handler<StartJudge> for JudgeActor {
                 lock.pop_front().clone().unwrap()
             };
 
-            let cur_state = submissions_schema::table
+            let cur_state = match submissions_schema::table
                 .filter(submissions_schema::id.eq(task_uuid))
                 .select(submissions_schema::state)
                 .first::<String>(&self.db_connection)
-                .expect("Error loading setting_data from submissions.");
+            {
+                Ok(cur_state) => cur_state,
+                Err(_) => {
+                    log::error!("Error loading setting_data from submissions.");
+                    return;
+                }
+            };
 
             if cur_state == *"Waiting" {
                 // run judge
-                let setting_string = submissions_schema::table
+                let setting_string = match submissions_schema::table
                     .filter(submissions_schema::id.eq(task_uuid))
                     .select(submissions_schema::settings)
                     .first::<String>(&self.db_connection)
-                    .expect("Error loading setting_data from submissions.");
+                {
+                    Ok(setting_string) => setting_string,
+                    Err(_) => {
+                        log::error!("Error loading setting_data from submissions.");
+                        return;
+                    }
+                };
 
                 let target = submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
-                diesel::update(target)
+                match diesel::update(target)
                     .set((submissions_schema::state.eq("Pending".to_owned()),))
                     .execute(&self.db_connection)
-                    .expect("Error changing submissions's state to Pending.");
+                {
+                    Ok(_) => (),
+                    Err(_) => {
+                        log::error!("Error changing submissions's state to Pending.");
+                        return;
+                    }
+                };
 
                 info!("sending request to {}", server_url);
                 {
@@ -80,10 +98,16 @@ impl Handler<StartJudge> for JudgeActor {
                 if result_string == *"" {
                     let target =
                         submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
-                    diesel::update(target)
+                    match diesel::update(target)
                         .set((submissions_schema::state.eq("Waiting".to_owned()),))
                         .execute(&self.db_connection)
-                        .expect("Error changing submissions's state to Waiting.");
+                    {
+                        Ok(_) => (),
+                        Err(_) => {
+                            log::error!("Error changing submissions's state to Waiting.");
+                            return;
+                        }
+                    };
 
                     {
                         let mut lock = WAITING_QUEUE.write().unwrap();
@@ -101,7 +125,7 @@ impl Handler<StartJudge> for JudgeActor {
                 // update submissions
                 let target = submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
                 let mut result_set = std::collections::HashSet::new();
-                diesel::update(target)
+                match diesel::update(target)
                     .set((
                         submissions_schema::state.eq("Finished".to_owned()),
                         submissions_schema::result.eq(serde_json::to_string(&result).unwrap()),
@@ -126,13 +150,25 @@ impl Handler<StartJudge> for JudgeActor {
                         }),
                     ))
                     .execute(&self.db_connection)
-                    .expect("Error changing submissions's data.");
+                {
+                    Ok(_) => (),
+                    Err(_) => {
+                        log::error!("Error changing submissions's data.");
+                        return;
+                    }
+                };
 
                 let submission = submissions::Submission::from(
-                    submissions_schema::table
+                    match submissions_schema::table
                         .filter(submissions_schema::id.eq(task_uuid))
                         .first::<submissions::RawSubmission>(&self.db_connection)
-                        .unwrap(),
+                    {
+                        Ok(raw_submission) => raw_submission,
+                        Err(_) => {
+                            log::error!("Error querying submission.");
+                            return;
+                        }
+                    }
                 );
 
                 common_region::count_results(
@@ -142,13 +178,26 @@ impl Handler<StartJudge> for JudgeActor {
                 );
 
                 if let Some(region) = submission.region.clone() {
-                    if get_self_type(region, &self.db_connection).unwrap() == "contest" {
-                        update_acm_rank_cache(
+                    if match get_self_type(region, &self.db_connection)
+                    {
+                        Ok(region_type) => region_type,
+                        Err(_) => {
+                            log::error!("Error getting region type.");
+                            return;
+                        }
+                    } == "contest" {
+                        match update_acm_rank_cache(
                             submission.region.unwrap(),
                             &self.db_connection,
                             false,
                         )
-                        .unwrap();
+                        {
+                            Ok(_) => (),
+                            Err(_) => {
+                                log::error!("Error updating acm rank cache.");
+                                return;
+                            }
+                        };
                     }
                 }
             }
