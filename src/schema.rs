@@ -2,6 +2,7 @@ table! {
     access_control_list (region, user_id) {
         user_id -> Int4,
         region -> Text,
+        is_unrated -> Nullable<Bool>,
     }
 }
 
@@ -10,7 +11,7 @@ table! {
         region -> Text,
         title -> Text,
         introduction -> Nullable<Text>,
-        start_time -> Nullable<Timestamp>,
+        start_time -> Timestamp,
         end_time -> Nullable<Timestamp>,
         seal_time -> Nullable<Timestamp>,
         settings -> Text,
@@ -59,7 +60,7 @@ table! {
         name -> Text,
         self_type -> Text,
         title -> Text,
-        has_access_policy -> Bool,
+        has_access_setting -> Bool,
         introduction -> Nullable<Text>,
     }
 }

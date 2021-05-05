@@ -1,12 +1,10 @@
-pub mod utils;
-
+use crate::auth::encryption;
 use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::models::users::*;
 use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
-use uuid::Uuid;
 
 pub fn create(
     account: String,
@@ -16,8 +14,8 @@ pub fn create(
     pool: web::Data<Pool>,
 ) -> ServiceResult<()> {
     let (salt, hash) = {
-        let salt = utils::make_salt();
-        let hash = utils::make_hash(&password, &salt).to_vec();
+        let salt = encryption::make_salt();
+        let hash = encryption::make_hash(&password, &salt).to_vec();
         (Some(salt), Some(hash))
     };
 
@@ -59,8 +57,8 @@ pub fn update(
     let conn = &db_connection(&pool)?;
 
     let (new_salt, new_hash) = if let Some(inner_data) = new_password {
-        let salt = utils::make_salt();
-        let hash = utils::make_hash(&inner_data, &salt).to_vec();
+        let salt = encryption::make_salt();
+        let hash = encryption::make_hash(&inner_data, &salt).to_vec();
         (Some(salt), Some(hash))
     } else {
         (None, None)
@@ -166,7 +164,7 @@ pub fn login(account: String, password: String, pool: web::Data<Pool>) -> Servic
         let hint = "Password was not set.".to_string();
         Err(ServiceError::BadRequest(hint))
     } else {
-        let hash = utils::make_hash(&password, &user.clone().salt.unwrap()).to_vec();
+        let hash = encryption::make_hash(&password, &user.clone().salt.unwrap()).to_vec();
         if Some(hash) == user.hash {
             Ok(SlimUser::from(user))
         } else {

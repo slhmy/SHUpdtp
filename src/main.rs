@@ -7,6 +7,7 @@ extern crate diesel;
 #[macro_use]
 extern crate log;
 
+mod auth;
 mod cli_args;
 mod controllers;
 mod database;
