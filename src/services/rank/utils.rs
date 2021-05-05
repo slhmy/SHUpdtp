@@ -98,9 +98,17 @@ fn build_acm_rank_column(
     let region = access_control_list_column.region;
     let user_id = access_control_list_column.user_id;
     let is_unrated = access_control_list_column.is_unrated;
+
+    use crate::schema::users as users_schema;
+    let account = users_schema::table
+        .filter(users_schema::id.eq(user_id))
+        .select(users_schema::account)
+        .first::<String>(conn)?;
+
     let mut rank_column = ACMRankColumn {
         rank: None,
         user_id,
+        account,
         total_accepted: 0,
         time_cost: 0,
         is_unrated,
