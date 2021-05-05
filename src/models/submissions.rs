@@ -264,6 +264,7 @@ impl From<RawSubmission> for Submission {
 pub struct SlimSubmission {
     pub problem_id: i32,
     pub user_id: i32,
+    pub state: String,
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
     pub out_results: Option<Vec<String>>,
@@ -278,6 +279,7 @@ impl From<RawSubmission> for SlimSubmission {
         Self {
             problem_id: raw.problem_id,
             user_id: raw.user_id,
+            state: raw.state,
             submit_time: raw.submit_time,
             is_accepted: raw.is_accepted,
             out_results: raw.out_results,

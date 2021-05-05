@@ -235,3 +235,45 @@ pub fn get_acm_rank(region: String, pool: web::Data<Pool>) -> ServiceResult<ACMR
         .unwrap()
         .to_owned())
 }
+
+pub fn delete(region: String, pool: web::Data<Pool>) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::regions as regions_schema;
+    diesel::delete(
+        regions_schema::table.filter(
+            regions_schema::name
+                .eq(region.clone())
+                .and(regions_schema::self_type.eq("contest")),
+        ),
+    )
+    .execute(conn)?;
+
+    use crate::schema::contests as contests_schema;
+    diesel::delete(contests_schema::table.filter(contests_schema::region.eq(region.clone())))
+        .execute(conn)?;
+
+    use crate::schema::region_access_settings as region_access_settings_schema;
+    diesel::delete(
+        region_access_settings_schema::table
+            .filter(region_access_settings_schema::region.eq(region.clone())),
+    )
+    .execute(conn)?;
+
+    use crate::schema::access_control_list as access_control_list_schema;
+    diesel::delete(
+        access_control_list_schema::table
+            .filter(access_control_list_schema::region.eq(region.clone())),
+    )
+    .execute(conn)?;
+
+    use crate::schema::region_links as region_links_schema;
+    diesel::delete(
+        region_links_schema::table.filter(region_links_schema::region.eq(region.clone())),
+    )
+    .execute(conn)?;
+
+    ACM_RANK_CACHE.write().unwrap().remove(&region);
+
+    Ok(())
+}
