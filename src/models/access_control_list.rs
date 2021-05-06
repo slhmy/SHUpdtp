@@ -6,4 +6,5 @@ pub struct AccessControlListColumn {
     pub user_id: i32,
     pub region: String,
     pub is_unrated: Option<bool>,
+    pub is_manager: bool,
 }

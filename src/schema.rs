@@ -3,6 +3,7 @@ table! {
         user_id -> Int4,
         region -> Text,
         is_unrated -> Nullable<Bool>,
+        is_manager -> Bool,
     }
 }
 

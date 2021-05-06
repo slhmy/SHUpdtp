@@ -49,6 +49,7 @@ pub async fn create(
                 ContestSettings::default()
             },
             body.password.clone(),
+            cur_user.id,
             pool,
         )
     })

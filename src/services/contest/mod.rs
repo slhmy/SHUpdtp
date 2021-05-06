@@ -26,6 +26,7 @@ pub fn create(
     seal_time: Option<NaiveDateTime>,
     settings: ContestSettings,
     password: Option<String>,
+    user_id: i32,
     pool: web::Data<Pool>,
 ) -> ServiceResult<()> {
     utils::check_settings_legal(settings.clone())?;
@@ -69,9 +70,19 @@ pub fn create(
     use crate::schema::region_access_settings as region_access_settings_schema;
     diesel::insert_into(region_access_settings_schema::table)
         .values(&RegionAccessSetting {
-            region: region,
+            region: region.clone(),
             salt: salt,
             hash: hash,
+        })
+        .execute(conn)?;
+    
+    use crate::schema::access_control_list as access_control_list_schema;
+    diesel::insert_into(access_control_list_schema::table)
+        .values(&AccessControlListColumn {
+            region,
+            user_id,
+            is_unrated: Some(false),
+            is_manager: true,
         })
         .execute(conn)?;
 
@@ -186,6 +197,7 @@ pub fn register(
             region,
             user_id,
             is_unrated,
+            is_manager: false,
         })
         .execute(conn)?;
 
