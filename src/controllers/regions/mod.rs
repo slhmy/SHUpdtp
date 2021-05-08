@@ -9,6 +9,7 @@ pub fn route(cfg: &mut web::ServiceConfig) {
             .service(handler::insert_problems)
             .service(handler::get_linked_problem_column_list)
             .service(handler::get_linked_problem)
-            .service(handler::create_submission),
+            .service(handler::create_submission)
+            .service(handler::delete_problem),
     );
 }
