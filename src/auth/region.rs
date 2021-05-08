@@ -49,6 +49,23 @@ pub fn check_acl(conn: &PgConnection, user_id: i32, region: String) -> ServiceRe
     }
 }
 
+pub fn is_manager(conn: &PgConnection, user_id: i32, region: String) -> ServiceResult<bool> {
+    use crate::schema::access_control_list as access_control_list_schema;
+
+    if access_control_list_schema::table
+        .filter(access_control_list_schema::user_id.eq(user_id))
+        .filter(access_control_list_schema::region.eq(region))
+        .filter(access_control_list_schema::is_manager.eq(true))
+        .count()
+        .get_result::<i64>(conn)?
+        == 1
+    {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
 // have right to get colume to see problem list
 pub fn check_view_right(
     pool: web::Data<Pool>,
@@ -56,7 +73,12 @@ pub fn check_view_right(
     region: String,
 ) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
-
+    if let Some(user) = logged_user.0.clone() {
+        if is_manager(conn, user.id, region.clone())? {
+            return Ok(());
+        }
+    }
+    
     let region_type = get_self_type(region.clone(), conn)?;
     if &region_type == "contest" {
         if logged_user.0.is_none() {
@@ -110,9 +132,14 @@ pub fn check_solve_right(
     region: String,
 ) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
-    if logged_user.0.is_none() {
+    
+    if let Some(user) = logged_user.0.clone() {
+        if is_manager(conn, user.id, region.clone())? {
+            return Ok(());
+        }
+    } else {
         return Err(ServiceError::Unauthorized);
-    }
+    } 
 
     let region_type = get_self_type(region.clone(), conn)?;
     if &region_type == "contest" {

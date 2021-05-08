@@ -262,6 +262,7 @@ impl From<RawSubmission> for Submission {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SlimSubmission {
+    pub id: Uuid,
     pub problem_id: i32,
     pub user_id: i32,
     pub state: String,
@@ -277,6 +278,7 @@ pub struct SlimSubmission {
 impl From<RawSubmission> for SlimSubmission {
     fn from(raw: RawSubmission) -> Self {
         Self {
+            id: raw.id,
             problem_id: raw.problem_id,
             user_id: raw.user_id,
             state: raw.state,

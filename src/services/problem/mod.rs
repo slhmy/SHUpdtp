@@ -307,8 +307,6 @@ pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
 
     diesel::delete(problems_schema::table.filter(problems_schema::id.eq(id))).execute(conn)?;
 
-    fs::remove_dir_all(&format!("data/test_cases/{}", id))?;
-
     let max_id: i32 = problems_schema::table
         .select(problems_schema::id)
         .order(problems_schema::id.desc())
@@ -319,6 +317,8 @@ pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
         max_id + 1
     ))
     .execute(conn)?;
+
+    fs::remove_dir_all(&format!("data/test_cases/{}", id))?;
 
     Ok(())
 }

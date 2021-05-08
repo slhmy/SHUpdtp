@@ -57,6 +57,7 @@ pub struct SlimContest {
     pub state: String,
     pub is_registered: bool,
     pub need_pass: bool,
+    pub settings: ContestSettings,
 }
 
 impl From<RawContest> for SlimContest {
@@ -73,6 +74,7 @@ impl From<RawContest> for SlimContest {
             state: contest.state,
             is_registered: false,
             need_pass: false,
+            settings: contest.settings,
         }
     }
 }
