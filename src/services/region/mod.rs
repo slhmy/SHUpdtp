@@ -313,5 +313,15 @@ pub fn delete_problem(region: String, inner_id: i32, pool: web::Data<Pool>) -> S
             .expect("Error changing problem's release state.");
     }
 
+    use crate::schema::submissions as submissions_schema;
+    diesel::delete(
+        submissions_schema::table.filter(
+            submissions_schema::region
+                .eq(region.clone())
+                .and(submissions_schema::problem_id.eq(problem_id.clone())),
+        ),
+    )
+    .execute(conn)?;
+
     Ok(())
 }
