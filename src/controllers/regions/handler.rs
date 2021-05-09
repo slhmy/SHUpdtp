@@ -166,3 +166,29 @@ pub async fn create_submission(
 
     Ok(HttpResponse::Ok().json(&res))
 }
+
+#[delete("/{region}/{inner_id}")]
+pub async fn delete_problem(
+    web::Path((region, inner_id)): web::Path<(String, i32)>,
+    logged_user: LoggedUser,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    info!("{:?}", logged_user.0);
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+    let cur_user = logged_user.0.unwrap();
+    if cur_user.role != "sup" && cur_user.role != "admin" {
+        let hint = "No permission.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
+
+    let res = web::block(move || region::delete_problem(region, inner_id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}

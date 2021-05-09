@@ -281,3 +281,47 @@ pub fn create_submission(
         judge_actor,
     )
 }
+
+pub fn delete_problem(region: String, inner_id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::region_links as region_links_schema;
+
+    let target = region_links_schema::table.filter(
+        region_links_schema::region
+            .eq(region.clone())
+            .and(region_links_schema::inner_id.eq(inner_id.clone())),
+    );
+
+    let problem_id: i32 = target
+        .clone()
+        .select(region_links_schema::problem_id)
+        .first(conn)?;
+
+    diesel::delete(target).execute(conn)?;
+
+    if region_links_schema::table
+        .filter(region_links_schema::problem_id.eq(problem_id.clone()))
+        .count()
+        .get_result::<i64>(conn)? as i32
+        == 0
+    {
+        use crate::schema::problems as problems_schema;
+        diesel::update(problems_schema::table.filter(problems_schema::id.eq(problem_id)))
+            .set(problems_schema::is_released.eq(false))
+            .execute(conn)
+            .expect("Error changing problem's release state.");
+    }
+
+    use crate::schema::submissions as submissions_schema;
+    diesel::delete(
+        submissions_schema::table.filter(
+            submissions_schema::region
+                .eq(region.clone())
+                .and(submissions_schema::problem_id.eq(problem_id.clone())),
+        ),
+    )
+    .execute(conn)?;
+
+    Ok(())
+}

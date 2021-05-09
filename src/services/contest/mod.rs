@@ -81,7 +81,7 @@ pub fn create(
         .values(&AccessControlListColumn {
             region,
             user_id,
-            is_unrated: Some(false),
+            is_unrated: Some(true),
             is_manager: true,
         })
         .execute(conn)?;
