@@ -10,6 +10,9 @@ pub enum ServiceError {
     #[error("Internal Server Error")]
     InternalServerError,
 
+    #[error("Internal Server Error: {0}")]
+    InternalServerErrorWithHint(String),
+
     #[error("BadRequest: {0}")]
     BadRequest(String),
 
@@ -29,6 +32,9 @@ impl ResponseError for ServiceError {
         match self {
             ServiceError::InternalServerError => {
                 HttpResponse::InternalServerError().json("Internal Server Error, Please try later")
+            }
+            ServiceError::InternalServerErrorWithHint(ref message) => {
+                HttpResponse::InternalServerError().json(message)
             }
             ServiceError::UnableToConnectToDb => HttpResponse::InternalServerError()
                 .json("Unable to connect to DB, Please try later"),
@@ -54,7 +60,7 @@ impl From<DBError> for ServiceError {
         // Right now we just care about UniqueViolation from diesel
         // But this would be helpful to easily map errors as our app grows
         let message = format!("{:?}", error);
-        ServiceError::BadRequest(message)
+        ServiceError::InternalServerErrorWithHint(message)
     }
 }
 
