@@ -91,6 +91,7 @@ pub fn create(
 
 pub fn get_contest_list(
     title_filter: Option<String>,
+    include_ended: bool,
     limit: i32,
     offset: i32,
     user_id: Option<i32>,
@@ -110,11 +111,17 @@ pub fn get_contest_list(
             .nullable()
             .like(title_filter.clone())
             .or(title_filter.is_none()),
+    ).filter(
+        contests_schema::end_time
+            .lt(get_cur_naive_date_time())
+            .or(contests_schema::end_time.is_null())
+            .or(include_ended)
     );
 
     let total: i64 = target.clone().count().get_result(conn)?;
 
     let raw_contests = target
+        .order(contests_schema::start_time.desc())
         .offset(offset.into())
         .limit(limit.into())
         .load::<RawContest>(conn)?;

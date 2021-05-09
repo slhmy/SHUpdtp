@@ -65,6 +65,7 @@ pub async fn create(
 #[derive(Deserialize)]
 pub struct GetContestListParams {
     title_filter: Option<String>,
+    include_ended: Option<bool>,
     limit: i32,
     offset: i32,
 }
@@ -78,6 +79,7 @@ pub async fn get_contest_list(
     let res = web::block(move || {
         contest::get_contest_list(
             query.title_filter.clone(),
+            query.include_ended.unwrap_or(true),
             query.limit,
             query.offset,
             if let Some(user) = logged_user.0 {
