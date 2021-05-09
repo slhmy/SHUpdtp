@@ -249,6 +249,19 @@ pub fn get_list(
     })
 }
 
+pub fn get_title(id: i32, pool: web::Data<Pool>) -> ServiceResult<String> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::problems as problems_schema;
+
+    let title: String = problems_schema::table
+        .filter(problems_schema::id.eq(id))
+        .select(problems_schema::title)
+        .first(conn)?;
+
+    Ok(title)
+}
+
 pub fn get(id: i32, pool: web::Data<Pool>) -> ServiceResult<Problem> {
     let conn = &db_connection(&pool)?;
 

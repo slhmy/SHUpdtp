@@ -117,6 +117,21 @@ pub async fn get_list(
     Ok(HttpResponse::Ok().json(&res))
 }
 
+#[get("/{id}/title")]
+pub async fn get_title(
+    web::Path(id): web::Path<i32>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    let res = web::block(move || problem::get_title(id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
 #[get("/{id}")]
 pub async fn get(
     web::Path(id): web::Path<i32>,

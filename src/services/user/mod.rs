@@ -35,6 +35,19 @@ pub fn create(
     Ok(())
 }
 
+pub fn get_name(id: i32, pool: web::Data<Pool>) -> ServiceResult<String> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::users as users_schema;
+
+    let name: String = users_schema::table
+        .filter(users_schema::id.eq(id))
+        .select(users_schema::account)
+        .first(conn)?;
+
+    Ok(name)
+}
+
 pub fn get(id: i32, pool: web::Data<Pool>) -> ServiceResult<OutUser> {
     let conn = &db_connection(&pool)?;
 

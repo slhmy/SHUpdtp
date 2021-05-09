@@ -73,6 +73,19 @@ pub async fn create(
     Ok(HttpResponse::Ok().json(&res))
 }
 
+#[get("/{id}/name")]
+pub async fn get_name(
+    web::Path(id): web::Path<i32>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    let res = web::block(move || user::get_name(id, pool)).await.map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
 #[get("/{id}")]
 pub async fn get(
     web::Path(id): web::Path<i32>,

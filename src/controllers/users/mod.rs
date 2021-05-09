@@ -7,6 +7,7 @@ pub fn route(cfg: &mut web::ServiceConfig) {
         web::scope("/users")
             .service(handler::me)
             .service(handler::get_permitted_methods)
+            .service(handler::get_name)
             .service(handler::get)
             .service(handler::create)
             .service(handler::update)
