@@ -75,7 +75,7 @@ pub fn create(
             hash: hash,
         })
         .execute(conn)?;
-    
+
     use crate::schema::access_control_list as access_control_list_schema;
     diesel::insert_into(access_control_list_schema::table)
         .values(&AccessControlListColumn {
@@ -106,17 +106,19 @@ pub fn get_contest_list(
     };
 
     use crate::schema::contests as contests_schema;
-    let target = contests_schema::table.filter(
-        contests_schema::title
-            .nullable()
-            .like(title_filter.clone())
-            .or(title_filter.is_none()),
-    ).filter(
-        contests_schema::end_time
-            .lt(get_cur_naive_date_time())
-            .or(contests_schema::end_time.is_null())
-            .or(include_ended)
-    );
+    let target = contests_schema::table
+        .filter(
+            contests_schema::title
+                .nullable()
+                .like(title_filter.clone())
+                .or(title_filter.is_none()),
+        )
+        .filter(
+            contests_schema::end_time
+                .lt(get_cur_naive_date_time())
+                .or(contests_schema::end_time.is_null())
+                .or(include_ended),
+        );
 
     let total: i64 = target.clone().count().get_result(conn)?;
 
@@ -186,16 +188,19 @@ pub fn register(
         .filter(region_access_settings_schema::region.eq(region.clone()))
         .first(conn)?;
 
-    if let Some(password) = maybe_password {
-        let hash =
-            encryption::make_hash(&password, &region_access_setting.clone().salt.unwrap()).to_vec();
-        if Some(hash) != region_access_setting.hash {
-            let hint = "Password is wrong.".to_string();
+    if region_access_setting.hash.is_some() {
+        if let Some(password) = maybe_password {
+            let hash =
+                encryption::make_hash(&password, &region_access_setting.clone().salt.unwrap())
+                    .to_vec();
+            if Some(hash) != region_access_setting.hash {
+                let hint = "Password is wrong.".to_string();
+                return Err(ServiceError::BadRequest(hint));
+            }
+        } else {
+            let hint = "Password not given.".to_string();
             return Err(ServiceError::BadRequest(hint));
         }
-    } else {
-        let hint = "Password not given.".to_string();
-        return Err(ServiceError::BadRequest(hint));
     }
 
     use crate::schema::access_control_list as access_control_list_schema;
