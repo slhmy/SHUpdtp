@@ -175,3 +175,53 @@ pub async fn delete(
 
     Ok(HttpResponse::Ok().json(&res))
 }
+
+#[derive(Deserialize)]
+pub struct UpdateContestBody {
+    new_title: Option<String>,
+    new_introduction: Option<String>,
+    new_start_time: Option<NaiveDateTime>,
+    new_end_time: Option<NaiveDateTime>,
+    new_seal_time: Option<NaiveDateTime>,
+    new_settings: Option<ContestSettings>,
+    new_password: Option<String>,
+}
+
+#[put("/{region}")]
+pub async fn update(
+    web::Path(region): web::Path<String>,
+    body: web::Json<UpdateContestBody>,
+    pool: web::Data<Pool>,
+    logged_user: LoggedUser,
+) -> Result<HttpResponse, ServiceError> {
+    info!("{:?}", logged_user.0);
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+    let cur_user = logged_user.0.unwrap();
+    if cur_user.role != "sup" && cur_user.role != "admin" {
+        let hint = "No permission.".to_string();
+        return Err(ServiceError::BadRequest(hint));
+    }
+
+    let res = web::block(move || {
+        contest::update(
+            region.clone(),
+            body.new_title.clone(),
+            body.new_introduction.clone(),
+            body.new_start_time.clone(),
+            body.new_end_time.clone(),
+            body.new_seal_time.clone(),
+            body.new_settings.clone(),
+            body.new_password.clone(),
+            pool,
+        )
+    })
+    .await
+    .map_err(|e| {
+        eprintln!("{}", e);
+        e
+    })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
