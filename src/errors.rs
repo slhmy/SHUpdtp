@@ -53,17 +53,8 @@ impl From<DBError> for ServiceError {
     fn from(error: DBError) -> ServiceError {
         // Right now we just care about UniqueViolation from diesel
         // But this would be helpful to easily map errors as our app grows
-        match error {
-            DBError::DatabaseError(_kind, info) => {
-                let message = info.details().unwrap_or_else(|| info.message()).to_string();
-                ServiceError::BadRequest(message)
-            }
-            diesel::result::Error::NotFound => {
-                let message = "Related Object not found".to_string();
-                ServiceError::BadRequest(message)
-            }
-            _ => ServiceError::InternalServerError,
-        }
+        let message = format!("{:?}", error);
+        ServiceError::BadRequest(message)
     }
 }
 
