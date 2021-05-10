@@ -168,7 +168,7 @@ impl Handler<StartJudge> for JudgeActor {
                             log::error!("Error querying submission.");
                             return;
                         }
-                    }
+                    },
                 );
 
                 common_region::count_results(
@@ -178,20 +178,19 @@ impl Handler<StartJudge> for JudgeActor {
                 );
 
                 if let Some(region) = submission.region.clone() {
-                    if match get_self_type(region, &self.db_connection)
-                    {
+                    if match get_self_type(region, &self.db_connection) {
                         Ok(region_type) => region_type,
                         Err(_) => {
                             log::error!("Error getting region type.");
                             return;
                         }
-                    } == "contest" {
+                    } == "contest"
+                    {
                         match update_acm_rank_cache(
                             submission.region.unwrap(),
                             &self.db_connection,
                             false,
-                        )
-                        {
+                        ) {
                             Ok(_) => (),
                             Err(_) => {
                                 log::error!("Error updating acm rank cache.");

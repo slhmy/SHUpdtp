@@ -78,10 +78,12 @@ pub async fn get_name(
     web::Path(id): web::Path<i32>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse, ServiceError> {
-    let res = web::block(move || user::get_name(id, pool)).await.map_err(|e| {
-        eprintln!("{}", e);
-        e
-    })?;
+    let res = web::block(move || user::get_name(id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
 
     Ok(HttpResponse::Ok().json(&res))
 }

@@ -75,6 +75,7 @@ pub fn create(
             hash: hash,
         })
         .execute(conn)?;
+
     use crate::schema::access_control_list as access_control_list_schema;
     diesel::insert_into(access_control_list_schema::table)
         .values(&AccessControlListColumn {
@@ -187,16 +188,19 @@ pub fn register(
         .filter(region_access_settings_schema::region.eq(region.clone()))
         .first(conn)?;
 
-    if let Some(password) = maybe_password {
-        let hash =
-            encryption::make_hash(&password, &region_access_setting.clone().salt.unwrap()).to_vec();
-        if Some(hash) != region_access_setting.hash {
-            let hint = "Password is wrong.".to_string();
+    if region_access_setting.hash.is_some() {
+        if let Some(password) = maybe_password {
+            let hash =
+                encryption::make_hash(&password, &region_access_setting.clone().salt.unwrap())
+                    .to_vec();
+            if Some(hash) != region_access_setting.hash {
+                let hint = "Password is wrong.".to_string();
+                return Err(ServiceError::BadRequest(hint));
+            }
+        } else {
+            let hint = "Password not given.".to_string();
             return Err(ServiceError::BadRequest(hint));
         }
-    } else {
-        let hint = "Password not given.".to_string();
-        return Err(ServiceError::BadRequest(hint));
     }
 
     use crate::schema::access_control_list as access_control_list_schema;

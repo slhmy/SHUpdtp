@@ -78,7 +78,7 @@ pub fn check_view_right(
             return Ok(());
         }
     }
-    
+
     let region_type = get_self_type(region.clone(), conn)?;
     if &region_type == "contest" {
         if logged_user.0.is_none() {
@@ -132,14 +132,14 @@ pub fn check_solve_right(
     region: String,
 ) -> ServiceResult<()> {
     let conn = &db_connection(&pool)?;
-    
+
     if let Some(user) = logged_user.0.clone() {
         if is_manager(conn, user.id, region.clone())? {
             return Ok(());
         }
     } else {
         return Err(ServiceError::Unauthorized);
-    } 
+    }
 
     let region_type = get_self_type(region.clone(), conn)?;
     if &region_type == "contest" {
