@@ -301,3 +301,68 @@ pub fn delete(region: String, pool: web::Data<Pool>) -> ServiceResult<()> {
 
     Ok(())
 }
+
+pub fn update(
+    region: String,
+    new_title: Option<String>,
+    new_introduction: Option<String>,
+    new_start_time: Option<NaiveDateTime>,
+    new_end_time: Option<NaiveDateTime>,
+    new_seal_time: Option<NaiveDateTime>,
+    new_settings: Option<ContestSettings>,
+    new_password: Option<String>,
+    pool: web::Data<Pool>,
+) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    if let Some(settings) = new_settings.clone() {
+        utils::check_settings_legal(settings)?;
+    }
+
+    use crate::schema::regions as regions_schema;
+    diesel::update(regions_schema::table.filter(regions_schema::name.eq(region.clone())))
+        .set(RegionForm {
+            title: new_title.clone(),
+            introduction: new_introduction.clone(),
+        })
+        .execute(conn)?;
+
+    use crate::schema::contests as contests_schema;
+    diesel::update(contests_schema::table.filter(contests_schema::region.eq(region.clone())))
+        .set(ContestForm {
+            title: new_title,
+            introduction: new_introduction,
+            start_time: new_start_time,
+            end_time: new_end_time,
+            seal_time: new_seal_time,
+            settings: if let Some(inner_data) = new_settings {
+                Some(serde_json::to_string(&inner_data).unwrap())
+            } else {
+                None
+            },
+        })
+        .execute(conn)?;
+
+    use crate::schema::region_access_settings as region_access_settings_schema;
+    if let Some(inner_data) = new_password {
+        let (salt, hash) = if inner_data.eq("") {
+            (None, None)
+        } else {
+            let salt = encryption::make_salt();
+            let hash = encryption::make_hash(&inner_data, &salt).to_vec();
+            (Some(salt), Some(hash))
+        };
+
+        diesel::update(
+            region_access_settings_schema::table
+                .filter(region_access_settings_schema::region.eq(region.clone())),
+        )
+        .set((
+            region_access_settings_schema::salt.eq(salt),
+            region_access_settings_schema::hash.eq(hash),
+        ))
+        .execute(conn)?;
+    }
+
+    Ok(())
+}

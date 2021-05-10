@@ -7,3 +7,10 @@ pub struct ProblemSetInfo {
     pub title: String,
     pub introduction: Option<String>,
 }
+
+#[derive(AsChangeset)]
+#[table_name = "problem_sets"]
+pub struct ProblemSetForm {
+    pub title: Option<String>,
+    pub introduction: Option<String>,
+}

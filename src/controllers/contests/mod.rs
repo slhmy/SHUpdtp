@@ -9,6 +9,7 @@ pub fn route(cfg: &mut web::ServiceConfig) {
             .service(handler::get_contest_list)
             .service(handler::register)
             .service(handler::get_acm_rank)
-            .service(handler::delete),
+            .service(handler::delete)
+            .service(handler::update),
     );
 }
