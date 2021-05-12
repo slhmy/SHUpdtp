@@ -1,36 +1,55 @@
-use crate::models::*;
-use diesel::prelude::*;
+use crate::errors::ServiceResult;
+use crate::database::*;
 use crate::statics::RESULT_STATISTICS_CACHE;
-use crate::models::statistics::*;
 use crate::models::submissions::*;
-use crate::errors::*;
+use diesel::prelude::*;
 
-pub fn update_results(
-    conn: &PgConnection,
-    submission: submissions::Submission,
-) -> ServiceResult<()> {
-    // if not sample submission
-    if let Some(region) = submission.region.clone() {
-        let problem_id = submission.problem_id;
-        let has_cache = {
-            let result_statistics = RESULT_STATISTICS_CACHE.read().unwrap();
-            result_statistics.get(&(region.clone(), problem_id)).is_some()
-        };
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubmissionStatistics {
+    pub problem_id: i32,
+    pub region: String,
+    pub submit_times: i32,
+    pub accept_times: i32,
+    pub error_times: i32,
+    pub avg_max_time: i32,
+    pub avg_max_memory: i32,
+    pub result_count: ResultCount,
+}
 
-        if !has_cache {
-            count_results(conn, &region, submission.problem_id)?;
-        } else {
-            let mut result_statistics = RESULT_STATISTICS_CACHE.write().unwrap();
-            let mut statistic = result_statistics.get_mut(&(region.clone(), problem_id)).unwrap();
-            update_submission_statistics(&mut statistic, submission);
-        }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResultCount {
+    pub wrong_answer: i32,
+    pub success: i32,
+    pub cpu_time_limit_exceeded: i32,
+    pub real_time_limit_exceeded: i32,
+    pub memory_limit_exceeded: i32,
+    pub runtime_error: i32,
+    pub system_error: i32,
+    pub unknown_error: i32,
+}
+
+pub fn get_results(
+    conn: &PooledConnection,
+    region: String,
+    problem_id: i32,
+) -> ServiceResult<SubmissionStatistics> {
+    let has_cache = {
+        let result_statistics = RESULT_STATISTICS_CACHE.read().unwrap();
+        result_statistics.get(&(region.clone(), problem_id)).is_some()
+    };
+
+    if !has_cache {
+        count_results(conn, &region, problem_id)?;
     }
 
-    Ok(())
+    Ok({
+        let result_statistics = RESULT_STATISTICS_CACHE.read().unwrap();
+        result_statistics.get(&(region.clone(), problem_id)).unwrap().to_owned()
+    })
 }
 
 fn count_results(
-    conn: &PgConnection,
+    conn: &PooledConnection,
     region: &str,
     problem_id: i32,
 ) -> ServiceResult<()> {

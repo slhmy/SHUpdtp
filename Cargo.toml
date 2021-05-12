@@ -21,8 +21,6 @@ actix-http = "2.1"
 
 # ORM and Query Builder
 diesel = { version = "1.4", features = ["postgres", "uuidv07", "chrono", "r2d2"] }
-# Mongodb Driver
-mongodb = { version = "1.2", default-features = false, features = ["sync"] }
 
 # Framework for serializing and deserializing
 serde = "1.0"

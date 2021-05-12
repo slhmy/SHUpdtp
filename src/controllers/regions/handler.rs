@@ -1,5 +1,5 @@
 use crate::auth::region::*;
-use crate::database::{Pool, SyncMongo};
+use crate::database::Pool;
 use crate::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::users::LoggedUser;
@@ -83,7 +83,6 @@ pub async fn get_linked_problem_column_list(
     query: web::Query<GetLinkedProblemColumnParams>,
     pool: web::Data<Pool>,
     logged_user: LoggedUser,
-    mongodb_database: web::Data<SyncMongo>,
 ) -> Result<HttpResponse, ServiceError> {
     check_view_right(pool.clone(), logged_user.clone(), region.clone())?;
 
@@ -101,7 +100,6 @@ pub async fn get_linked_problem_column_list(
             query.limit,
             query.offset,
             pool,
-            mongodb_database,
         )
     })
     .await

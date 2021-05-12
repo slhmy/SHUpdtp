@@ -9,7 +9,6 @@ use crate::statics::WAITING_QUEUE;
 use crate::utils::*;
 use actix::prelude::*;
 use diesel::prelude::*;
-use mongodb::bson::doc;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct StartJudge();
@@ -171,11 +170,16 @@ impl Handler<StartJudge> for JudgeActor {
                     },
                 );
 
-                common_region::count_results(
-                    self.mongodb_database.clone(),
+                match common_region::update_results(
+                    &self.db_connection,
                     submission.clone(),
-                    result_set.clone(),
-                );
+                ) {
+                    Ok(_) => {},
+                    Err(_) => {
+                        log::error!("Error updating results type.");
+                        return;
+                    } 
+                };
 
                 if let Some(region) = submission.region.clone() {
                     if match get_self_type(region, &self.db_connection) {

@@ -2,6 +2,7 @@ use super::languages::*;
 use crate::schema::submissions;
 use chrono::NaiveDateTime;
 use uuid::Uuid;
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestCase {
@@ -233,6 +234,7 @@ pub struct Submission {
     pub max_memory: Option<i32>,
     pub language: Option<String>,
     pub err: Option<String>,
+    pub out_results: Option<HashSet<String>>
 }
 
 impl From<RawSubmission> for Submission {
@@ -244,7 +246,7 @@ impl From<RawSubmission> for Submission {
             region: raw.region,
             state: raw.state,
             settings: serde_json::from_str::<JudgeSettings>(&raw.settings).unwrap(),
-            result: if let Some(result) = raw.result {
+            result: if let Some(result) = raw.result.clone() {
                 Some(serde_json::from_str::<JudgeResult>(&result).unwrap())
             } else {
                 None
@@ -256,6 +258,18 @@ impl From<RawSubmission> for Submission {
             max_memory: raw.max_memory,
             language: raw.language,
             err: raw.err,
+            out_results: {
+                if let Some(result) = raw.result {
+                    let result = serde_json::from_str::<JudgeResult>(&result).unwrap();
+                    if let Some(details) = result.details {
+                        let mut set = std::collections::HashSet::new();
+                        for detail in details {
+                            set.insert(detail.result);
+                        }
+                        Some(set)
+                    } else { None }
+                } else { None }
+            },
         }
     }
 }
@@ -268,7 +282,7 @@ pub struct SlimSubmission {
     pub state: String,
     pub submit_time: NaiveDateTime,
     pub is_accepted: Option<bool>,
-    pub out_results: Option<Vec<String>>,
+    pub out_results: Option<HashSet<String>>,
     pub max_time: Option<i32>,
     pub max_memory: Option<i32>,
     pub language: Option<String>,
@@ -284,7 +298,18 @@ impl From<RawSubmission> for SlimSubmission {
             state: raw.state,
             submit_time: raw.submit_time,
             is_accepted: raw.is_accepted,
-            out_results: raw.out_results,
+            out_results: {
+                if let Some(result) = raw.result {
+                    let result = serde_json::from_str::<JudgeResult>(&result).unwrap();
+                    if let Some(details) = result.details {
+                        let mut set = std::collections::HashSet::new();
+                        for detail in details {
+                            set.insert(detail.result);
+                        }
+                        Some(set)
+                    } else { None }
+                } else { None }
+            },
             max_time: raw.max_time,
             max_memory: raw.max_memory,
             language: raw.language,

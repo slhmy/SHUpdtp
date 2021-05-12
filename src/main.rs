@@ -42,9 +42,6 @@ async fn main() -> std::io::Result<()> {
     };
 
     let pool = database::pool::establish_connection(opt.clone());
-    let mongodb_client = mongodb::sync::Client::with_uri_str(&opt.mongodb_url).unwrap();
-    let mongodb_database = mongodb_client.database("SHUpdtp");
-
     let domain = opt.domain.clone();
     let cookie_secret_key = opt.auth_secret_key.clone();
     let secure_cookie = opt.secure_cookie;
@@ -54,7 +51,6 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .data(mongodb_database.clone())
             .data(pool.clone())
             .data(judge_actor::JudgeActorAddr {
                 addr: judge_actor_addr.clone(),

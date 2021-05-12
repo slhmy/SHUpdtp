@@ -1,5 +1,6 @@
 use super::problems;
 use crate::schema::*;
+use crate::errors::ServiceResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Insertable, Queryable)]
 #[table_name = "region_links"]
@@ -38,82 +39,32 @@ pub struct LinkedProblemColumn {
     pub error_times: i32,
 }
 
+use crate::database::*;
+use crate::models::statistics::get_results;
 pub fn get_column_from_raw(
+    conn: &PooledConnection,
     raw: RawLinkedProblemColumn,
-    mongodb_database: &mongodb::sync::Database,
-) -> LinkedProblemColumn {
-    use mongodb::bson::doc;
-    if mongodb_database
-        .collection("submission_statistics")
-        .find_one(
-            doc! {
-                "problem_id": raw.problem_id,
-                "region": raw.region.clone(),
-            },
-            None,
-        )
-        .unwrap()
-        .is_none()
-    {
-        mongodb_database
-            .collection("submission_statistics")
-            .insert_one(
-                doc! {
-                    "problem_id": raw.problem_id,
-                    "region": raw.region.clone(),
-                    "submit_times": 0,
-                    "accept_times": 0,
-                    "error_times": 0,
-                    "avg_max_time": 0,
-                    "avg_max_memory": 0,
-                    "WRONG_ANSWER": 0,
-                    "SUCCESS": 0,
-                    "CPU_TIME_LIMIT_EXCEEDED": 0,
-                    "REAL_TIME_LIMIT_EXCEEDED": 0,
-                    "MEMORY_LIMIT_EXCEEDED": 0,
-                    "RUNTIME_ERROR": 0,
-                    "SYSTEM_ERROR": 0,
-                    "UNKNOWN_ERROR": 0,
+) -> ServiceResult<LinkedProblemColumn> {
+    let statistic = get_results(conn, raw.region.clone(), raw.problem_id)?;
+
+    Ok(
+        LinkedProblemColumn {
+            region: raw.region,
+            inner_id: raw.inner_id,
+            out_problem: problems::OutProblem {
+                id: raw.problem_id,
+                info: problems::ProblemInfo {
+                    title: raw.problem_title,
+                    tags: raw.problem_tags,
+                    difficulty: raw.problem_difficulty,
                 },
-                None,
-            )
-            .unwrap();
-    }
-
-    let mut submit_times = 0;
-    let mut accept_times = 0;
-    let mut error_times = 0;
-
-    if let Some(doc) = mongodb_database
-        .collection("submission_statistics")
-        .find_one(
-            doc! {
-                "problem_id": raw.problem_id,
-                "region": raw.region.clone(),
+                is_released: raw.is_released,
             },
-            None,
-        )
-        .unwrap()
-    {
-        submit_times = doc.get("submit_times").unwrap().as_i32().unwrap();
-        accept_times = doc.get("accept_times").unwrap().as_i32().unwrap();
-        error_times = doc.get("error_times").unwrap().as_i32().unwrap();
-    }
-
-    LinkedProblemColumn {
-        region: raw.region,
-        inner_id: raw.inner_id,
-        out_problem: problems::OutProblem {
-            id: raw.problem_id,
-            info: problems::ProblemInfo {
-                title: raw.problem_title,
-                tags: raw.problem_tags,
-                difficulty: raw.problem_difficulty,
-            },
-            is_released: raw.is_released,
-        },
-        submit_times: submit_times,
-        accept_times: accept_times,
-        error_times: error_times,
-    }
+            submit_times: statistic.submit_times,
+            accept_times: statistic.accept_times,
+            error_times: statistic.error_times,
+        }
+    )
 }
+
+

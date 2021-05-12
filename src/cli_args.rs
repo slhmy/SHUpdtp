@@ -20,10 +20,6 @@ pub(crate) struct Opt {
     #[structopt(long, env = "DATABASE_URL")]
     pub database_url: String,
 
-    /// Mongodb URL
-    #[structopt(long, env = "MONGODB_URL")]
-    pub mongodb_url: String,
-
     /// Secret Key for Auth Cookie
     #[structopt(
         long,

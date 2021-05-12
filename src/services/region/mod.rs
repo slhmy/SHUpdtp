@@ -1,6 +1,6 @@
 pub mod utils;
 
-use crate::database::{db_connection, Pool, SyncMongo};
+use crate::database::{db_connection, Pool};
 use crate::errors::{ServiceError, ServiceResult};
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::problems::*;
@@ -108,7 +108,6 @@ pub fn get_linked_problem_column_list(
     limit: i32,
     offset: i32,
     pool: web::Data<Pool>,
-    mongodb_database: web::Data<SyncMongo>,
 ) -> ServiceResult<SizedList<LinkedProblemColumn>> {
     let conn = &db_connection(&pool)?;
 
@@ -203,7 +202,7 @@ pub fn get_linked_problem_column_list(
     let out_columns = {
         let mut res = Vec::new();
         for column in columns {
-            res.push(get_column_from_raw(column, &mongodb_database));
+            res.push(get_column_from_raw(conn, column)?);
         }
         res
     };

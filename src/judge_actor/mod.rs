@@ -7,7 +7,6 @@ use diesel::prelude::*;
 
 pub struct JudgeActor {
     pub db_connection: PgConnection,
-    pub mongodb_database: mongodb::sync::Database,
 }
 
 impl Actor for JudgeActor {
@@ -20,8 +19,6 @@ pub struct JudgeActorAddr {
 
 pub(crate) fn start_judge_actor(opt: crate::cli_args::Opt) -> Addr<JudgeActor> {
     let database_url = opt.database_url.clone();
-    let mongodb_client = mongodb::sync::Client::with_uri_str(&opt.mongodb_url).unwrap();
-    let mongodb_database = mongodb_client.database("SHUpdtp");
 
     info!(
         "Spawning {} JudgeActor in SyncArbiter",
@@ -30,6 +27,5 @@ pub(crate) fn start_judge_actor(opt: crate::cli_args::Opt) -> Addr<JudgeActor> {
 
     SyncArbiter::start(opt.judge_actor_count, move || JudgeActor {
         db_connection: PgConnection::establish(&database_url).unwrap(),
-        mongodb_database: mongodb_database.clone(),
     })
 }
