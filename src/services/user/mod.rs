@@ -212,3 +212,106 @@ pub fn delete(id: i32, pool: web::Data<Pool>) -> ServiceResult<()> {
 
     Ok(())
 }
+
+pub fn get_submissions_count(
+    user_id: i32,
+    pool: web::Data<Pool>,
+) -> ServiceResult<UserSubmissionCount> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::problems as problems_schema;
+    use crate::schema::submissions as submissions_schema;
+
+    let target = submissions_schema::table
+        .filter(submissions_schema::user_id.eq(user_id))
+        .inner_join(
+            problems_schema::table.on(submissions_schema::problem_id.eq(problems_schema::id)),
+        );
+
+    let navie = target.filter(problems_schema::difficulty.lt(2.5));
+    let easy = target.filter(
+        problems_schema::difficulty
+            .ge(2.5)
+            .and(problems_schema::difficulty.lt(5.0)),
+    );
+    let middle = target.filter(
+        problems_schema::difficulty
+            .ge(5.0)
+            .and(problems_schema::difficulty.lt(7.5)),
+    );
+    let hard = target.filter(problems_schema::difficulty.ge(7.5));
+
+    let navie_submit_times: i64 = navie.count().get_result(conn)?;
+    let navie_accept_times: i64 = navie
+        .filter(submissions_schema::is_accepted.eq(true))
+        .count()
+        .get_result(conn)?;
+
+    let easy_submit_times: i64 = easy.count().get_result(conn)?;
+    let easy_accept_times: i64 = easy
+        .filter(submissions_schema::is_accepted.eq(true))
+        .count()
+        .get_result(conn)?;
+
+    let middle_submit_times: i64 = middle.count().get_result(conn)?;
+    let middle_accept_times: i64 = middle
+        .filter(submissions_schema::is_accepted.eq(true))
+        .count()
+        .get_result(conn)?;
+
+    let hard_submit_times: i64 = hard.count().get_result(conn)?;
+    let hard_accept_times: i64 = hard
+        .filter(submissions_schema::is_accepted.eq(true))
+        .count()
+        .get_result(conn)?;
+
+    let total_submit_times: i64 =
+        navie_submit_times + easy_submit_times + middle_submit_times + hard_submit_times;
+    let total_accept_times: i64 =
+        navie_accept_times + easy_accept_times + middle_accept_times + hard_accept_times;
+
+    Ok(UserSubmissionCount {
+        total_submit_times: total_submit_times as i32,
+        total_accept_times: total_accept_times as i32,
+        navie_submit_times: navie_submit_times as i32,
+        navie_accept_times: navie_accept_times as i32,
+        easy_submit_times: easy_submit_times as i32,
+        easy_accept_times: easy_accept_times as i32,
+        middle_submit_times: middle_submit_times as i32,
+        middle_accept_times: middle_accept_times as i32,
+        hard_submit_times: hard_submit_times as i32,
+        hard_accept_times: hard_accept_times as i32,
+    })
+}
+
+pub fn get_submissions_time(
+    user_id: i32,
+    pool: web::Data<Pool>,
+) -> ServiceResult<Vec<(chrono::NaiveDate, i32)>> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::submissions as submissions_schema;
+
+    let raw_times: Vec<chrono::NaiveDateTime> = submissions_schema::table
+        .filter(submissions_schema::user_id.eq(user_id))
+        .select(submissions_schema::submit_time)
+        .order(submissions_schema::submit_time.desc())
+        .load(conn)?;
+
+    let mut time_count: Vec<(chrono::NaiveDate, i32)> = Vec::new();
+    let mut last = 0;
+    let mut first: bool = true;
+    for time in raw_times {
+        if first {
+            time_count.push((time.date(), 1));
+            first = false;
+        } else if time.date() == time_count[last].0 {
+            time_count[last].1 += 1;
+        } else {
+            time_count.push((time.date(), 1));
+            last += 1;
+        }
+    }
+
+    Ok(time_count)
+}
