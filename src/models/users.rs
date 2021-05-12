@@ -107,3 +107,17 @@ pub struct AuthConfig {
     pub net_friend: Option<Vec<String>>,
     pub others: Option<Vec<String>>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserSubmissionCount {
+    pub total_submit_times: i32,
+    pub total_accept_times: i32,
+    pub navie_submit_times: i32,
+    pub navie_accept_times: i32,
+    pub easy_submit_times: i32,
+    pub easy_accept_times: i32,
+    pub middle_submit_times: i32,
+    pub middle_accept_times: i32,
+    pub hard_submit_times: i32,
+    pub hard_accept_times: i32,
+}

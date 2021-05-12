@@ -14,6 +14,8 @@ pub fn route(cfg: &mut web::ServiceConfig) {
             .service(handler::get_list)
             .service(handler::login)
             .service(handler::logout)
-            .service(handler::delete),
+            .service(handler::delete)
+            .service(handler::get_submissions_count)
+            .service(handler::get_submissions_time),
     );
 }

@@ -233,3 +233,43 @@ pub async fn delete(
 
     Ok(HttpResponse::Ok().json(&res))
 }
+
+#[get("/{id}/submissions_count")]
+pub async fn get_submissions_count(
+    web::Path(user_id): web::Path<i32>,
+    logged_user: LoggedUser,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+
+    let res = web::block(move || user::get_submissions_count(user_id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
+
+#[get("/{id}/submissions_time")]
+pub async fn get_submissions_time(
+    web::Path(user_id): web::Path<i32>,
+    logged_user: LoggedUser,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse, ServiceError> {
+    if logged_user.0.is_none() {
+        return Err(ServiceError::Unauthorized);
+    }
+
+    let res = web::block(move || user::get_submissions_time(user_id, pool))
+        .await
+        .map_err(|e| {
+            eprintln!("{}", e);
+            e
+        })?;
+
+    Ok(HttpResponse::Ok().json(&res))
+}
