@@ -153,3 +153,14 @@ pub fn get_contest_state(contest: Contest, cur_time: NaiveDateTime) -> ContestSt
         }
     }
 }
+
+#[derive(AsChangeset)]
+#[table_name = "contests"]
+pub struct ContestForm {
+    pub title: Option<String>,
+    pub introduction: Option<String>,
+    pub start_time: Option<NaiveDateTime>,
+    pub end_time: Option<NaiveDateTime>,
+    pub seal_time: Option<NaiveDateTime>,
+    pub settings: Option<String>,
+}

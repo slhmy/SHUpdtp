@@ -9,3 +9,10 @@ pub struct Region {
     pub has_access_setting: bool,
     pub introduction: Option<String>,
 }
+
+#[derive(AsChangeset)]
+#[table_name = "regions"]
+pub struct RegionForm {
+    pub title: Option<String>,
+    pub introduction: Option<String>,
+}

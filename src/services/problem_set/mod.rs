@@ -108,3 +108,30 @@ pub fn delete(region: String, pool: web::Data<Pool>) -> ServiceResult<()> {
 
     Ok(())
 }
+
+pub fn update(
+    region: String,
+    new_title: Option<String>,
+    new_introduction: Option<String>,
+    pool: web::Data<Pool>,
+) -> ServiceResult<()> {
+    let conn = &db_connection(&pool)?;
+
+    use crate::schema::regions as regions_schema;
+    diesel::update(regions_schema::table.filter(regions_schema::name.eq(region.clone())))
+        .set(RegionForm {
+            title: new_title.clone(),
+            introduction: new_introduction.clone(),
+        })
+        .execute(conn)?;
+
+    use crate::schema::problem_sets as problem_sets_schema;
+    diesel::update(problem_sets_schema::table.filter(problem_sets_schema::region.eq(region.clone())))
+        .set(ProblemSetForm {
+            title: new_title,
+            introduction: new_introduction,
+        })
+        .execute(conn)?;
+
+    Ok(())
+}
