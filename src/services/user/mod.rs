@@ -287,7 +287,7 @@ pub fn get_submissions_count(
 pub fn get_submissions_time(
     user_id: i32,
     pool: web::Data<Pool>,
-) -> ServiceResult<Vec<(chrono::NaiveDate, i32)>> {
+) -> ServiceResult<Vec<UserSubmissionTime>> {
     let conn = &db_connection(&pool)?;
 
     use crate::schema::submissions as submissions_schema;
@@ -298,17 +298,23 @@ pub fn get_submissions_time(
         .order(submissions_schema::submit_time.desc())
         .load(conn)?;
 
-    let mut time_count: Vec<(chrono::NaiveDate, i32)> = Vec::new();
+    let mut time_count: Vec<UserSubmissionTime> = Vec::new();
     let mut last = 0;
     let mut first: bool = true;
     for time in raw_times {
         if first {
-            time_count.push((time.date(), 1));
+            time_count.push(UserSubmissionTime {
+                date: time.date(),
+                count: 1,
+            });
             first = false;
-        } else if time.date() == time_count[last].0 {
-            time_count[last].1 += 1;
+        } else if time.date() == time_count[last].date {
+            time_count[last].count += 1;
         } else {
-            time_count.push((time.date(), 1));
+            time_count.push(UserSubmissionTime {
+                date: time.date(),
+                count: 1,
+            });
             last += 1;
         }
     }
