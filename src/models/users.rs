@@ -3,6 +3,7 @@ use actix_identity::RequestIdentity;
 use actix_web::dev::Payload;
 use actix_web::{Error, FromRequest, HttpRequest};
 use shrinkwraprs::Shrinkwrap;
+use chrono::NaiveDate;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
 pub struct User {
@@ -106,4 +107,24 @@ pub struct AuthConfig {
     pub student: Option<Vec<String>>,
     pub net_friend: Option<Vec<String>>,
     pub others: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserSubmissionCount {
+    pub total_submit_times: i32,
+    pub total_accept_times: i32,
+    pub navie_submit_times: i32,
+    pub navie_accept_times: i32,
+    pub easy_submit_times: i32,
+    pub easy_accept_times: i32,
+    pub middle_submit_times: i32,
+    pub middle_accept_times: i32,
+    pub hard_submit_times: i32,
+    pub hard_accept_times: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserSubmissionTime {
+    pub date: NaiveDate,
+    pub count: i32,
 }
