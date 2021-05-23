@@ -3,10 +3,10 @@ mod statistics;
 mod utils;
 
 use actix::prelude::*;
-use diesel::prelude::*;
+use crate::database::Pool;
 
 pub struct JudgeActor {
-    pub db_connection: PgConnection,
+    pub pool: Pool,
 }
 
 impl Actor for JudgeActor {
@@ -17,15 +17,13 @@ pub struct JudgeActorAddr {
     pub addr: Addr<JudgeActor>,
 }
 
-pub(crate) fn start_judge_actor(opt: crate::cli_args::Opt) -> Addr<JudgeActor> {
-    let database_url = opt.database_url.clone();
-
+pub(crate) fn start_judge_actor(opt: crate::cli_args::Opt, pool: Pool) -> Addr<JudgeActor> {
     info!(
         "Spawning {} JudgeActor in SyncArbiter",
         opt.judge_actor_count
     );
 
     SyncArbiter::start(opt.judge_actor_count, move || JudgeActor {
-        db_connection: PgConnection::establish(&database_url).unwrap(),
+        pool: pool.clone(),
     })
 }

@@ -42,12 +42,12 @@ async fn main() -> std::io::Result<()> {
     };
 
     let pool = database::pool::establish_connection(opt.clone());
-    let domain = opt.domain.clone();
+    let _domain = opt.domain.clone();
     let cookie_secret_key = opt.auth_secret_key.clone();
-    let secure_cookie = opt.secure_cookie;
+    let _secure_cookie = opt.secure_cookie;
     let auth_duration = time::Duration::hours(i64::from(opt.auth_duration_in_hour));
 
-    let judge_actor_addr = judge_actor::start_judge_actor(opt.clone());
+    let judge_actor_addr = judge_actor::start_judge_actor(opt.clone(), pool.clone());
 
     HttpServer::new(move || {
         App::new()

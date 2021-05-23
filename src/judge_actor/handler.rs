@@ -9,6 +9,7 @@ use crate::statics::WAITING_QUEUE;
 use crate::utils::*;
 use actix::prelude::*;
 use diesel::prelude::*;
+use crate::database::db_connection;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct StartJudge();
@@ -23,15 +24,20 @@ impl Handler<StartJudge> for JudgeActor {
     fn handle(&mut self, _msg: StartJudge, _: &mut Self::Context) -> Self::Result {
         use crate::schema::submissions as submissions_schema;
 
+        let conn = match db_connection(&self.pool) {
+            Ok(conn) => conn,
+            Err(_) => { return; }
+        };
+
         let mut queue_size = {
             let lock = WAITING_QUEUE.read().unwrap();
             lock.len()
         };
-        info!("queue_size: {}", queue_size);
+        log::info!("queue_size: {}", queue_size);
         while queue_size != 0 {
             let server = choose_judge_server();
             if server.is_none() {
-                return ();
+                return;
             }
             let (server_url, server_token) = server.unwrap();
 
@@ -43,7 +49,7 @@ impl Handler<StartJudge> for JudgeActor {
             let cur_state = match submissions_schema::table
                 .filter(submissions_schema::id.eq(task_uuid))
                 .select(submissions_schema::state)
-                .first::<String>(&self.db_connection)
+                .first::<String>(&conn)
             {
                 Ok(cur_state) => cur_state,
                 Err(_) => {
@@ -57,7 +63,7 @@ impl Handler<StartJudge> for JudgeActor {
                 let setting_string = match submissions_schema::table
                     .filter(submissions_schema::id.eq(task_uuid))
                     .select(submissions_schema::settings)
-                    .first::<String>(&self.db_connection)
+                    .first::<String>(&conn)
                 {
                     Ok(setting_string) => setting_string,
                     Err(_) => {
@@ -69,7 +75,7 @@ impl Handler<StartJudge> for JudgeActor {
                 let target = submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
                 match diesel::update(target)
                     .set((submissions_schema::state.eq("Pending".to_owned()),))
-                    .execute(&self.db_connection)
+                    .execute(&conn)
                 {
                     Ok(_) => (),
                     Err(_) => {
@@ -99,7 +105,7 @@ impl Handler<StartJudge> for JudgeActor {
                         submissions_schema::table.filter(submissions_schema::id.eq(task_uuid));
                     match diesel::update(target)
                         .set((submissions_schema::state.eq("Waiting".to_owned()),))
-                        .execute(&self.db_connection)
+                        .execute(&conn)
                     {
                         Ok(_) => (),
                         Err(_) => {
@@ -148,7 +154,7 @@ impl Handler<StartJudge> for JudgeActor {
                             }
                         }),
                     ))
-                    .execute(&self.db_connection)
+                    .execute(&conn)
                 {
                     Ok(_) => (),
                     Err(_) => {
@@ -160,7 +166,7 @@ impl Handler<StartJudge> for JudgeActor {
                 let submission = submissions::Submission::from(
                     match submissions_schema::table
                         .filter(submissions_schema::id.eq(task_uuid))
-                        .first::<submissions::RawSubmission>(&self.db_connection)
+                        .first::<submissions::RawSubmission>(&conn)
                     {
                         Ok(raw_submission) => raw_submission,
                         Err(_) => {
@@ -171,7 +177,7 @@ impl Handler<StartJudge> for JudgeActor {
                 );
 
                 match common_region::update_results(
-                    &self.db_connection,
+                    &conn,
                     submission.clone(),
                 ) {
                     Ok(_) => {},
@@ -182,7 +188,7 @@ impl Handler<StartJudge> for JudgeActor {
                 };
 
                 if let Some(region) = submission.region.clone() {
-                    if match get_self_type(region, &self.db_connection) {
+                    if match get_self_type(region, &conn) {
                         Ok(region_type) => region_type,
                         Err(_) => {
                             log::error!("Error getting region type.");
@@ -192,7 +198,7 @@ impl Handler<StartJudge> for JudgeActor {
                     {
                         match update_acm_rank_cache(
                             submission.region.unwrap(),
-                            &self.db_connection,
+                            &conn,
                             false,
                         ) {
                             Ok(_) => (),

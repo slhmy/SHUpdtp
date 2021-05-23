@@ -1,4 +1,5 @@
 use crate::models::*;
+use crate::database::PooledConnection;
 use diesel::prelude::*;
 use crate::statics::RESULT_STATISTICS_CACHE;
 use crate::models::statistics::*;
@@ -6,7 +7,7 @@ use crate::models::submissions::*;
 use crate::errors::*;
 
 pub fn update_results(
-    conn: &PgConnection,
+    conn: &PooledConnection,
     submission: submissions::Submission,
 ) -> ServiceResult<()> {
     // if not sample submission
@@ -30,7 +31,7 @@ pub fn update_results(
 }
 
 fn count_results(
-    conn: &PgConnection,
+    conn: &PooledConnection,
     region: &str,
     problem_id: i32,
 ) -> ServiceResult<()> {
