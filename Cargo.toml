@@ -6,6 +6,9 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workplace]
+members = ["crates/server-core"]
+
 [dependencies]
 # Actor model
 actix = "0.10.0"
@@ -20,7 +23,7 @@ actix-multipart = "0.3"
 actix-http = "2.1"
 
 # ORM and Query Builder
-diesel = { version = "1.4", features = ["postgres", "uuidv07", "chrono", "r2d2"] }
+diesel = { version = "1.4.6", features = ["postgres", "uuidv07", "chrono", "r2d2"] }
 
 # Framework for serializing and deserializing
 serde = "1.0"
@@ -30,7 +33,7 @@ serde_json = "1.0"
 # Other libraries
 thiserror = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
-uuid = { version = "0.7", features = ["serde", "v4"] }
+uuid = { version = "0.8", features = ["serde", "v4"] }
 structopt = "0.3"
 dotenv = "0.15"
 log = "0.4"
@@ -50,3 +53,5 @@ base64 = "0.13.0"
 digest = "0.9.0"
 lazy_static = "1.1"
 regex = "1.4"
+
+server-core = { path = "crates/server-core" }

@@ -49,8 +49,8 @@ impl ResponseError for ServiceError {
 
 // we can return early in our handlers if UUID is not valid
 // and provide a custom message
-impl From<uuid::parser::ParseError> for ServiceError {
-    fn from(_: uuid::parser::ParseError) -> ServiceError {
+impl From<uuid::Error> for ServiceError {
+    fn from(_: uuid::Error) -> ServiceError {
         ServiceError::BadRequest("Invalid UUID".into())
     }
 }
