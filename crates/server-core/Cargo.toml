@@ -1,0 +1,28 @@
+[package]
+name = "server-core"
+version = "0.1.0"
+authors = ["slhmy <1484836413@qq.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+argon2rs = "0.2"
+rand = "0.8"
+# ORM and Query Builder
+diesel = { version = "1.4", features = ["postgres", "uuidv07", "chrono", "r2d2"] }
+# Web framework
+actix-web = "3"
+log = "0.4"
+
+# Framework for serializing and deserializing
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+thiserror = "1.0"
+
+uuid = { version = "0.8", features = ["serde", "v4"] }
+
+structopt = "0.3"
