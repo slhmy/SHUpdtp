@@ -1,4 +1,4 @@
-use crate::auth::encryption;
+use server_core::utils::encryption;
 use crate::database::{db_connection, Pool};
 use server_core::errors::{ServiceError, ServiceResult};
 use crate::models::users::*;
