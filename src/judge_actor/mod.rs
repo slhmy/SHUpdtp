@@ -3,7 +3,7 @@ mod statistics;
 mod utils;
 
 use actix::prelude::*;
-use crate::database::Pool;
+use server_core::database::Pool;
 
 pub struct JudgeActor {
     pub pool: Pool,
@@ -17,7 +17,7 @@ pub struct JudgeActorAddr {
     pub addr: Addr<JudgeActor>,
 }
 
-pub(crate) fn start_judge_actor(opt: crate::cli_args::Opt, pool: Pool) -> Addr<JudgeActor> {
+pub(crate) fn start_judge_actor(opt: server_core::cli_args::Opt, pool: Pool) -> Addr<JudgeActor> {
     info!(
         "Spawning {} JudgeActor in SyncArbiter",
         opt.judge_actor_count

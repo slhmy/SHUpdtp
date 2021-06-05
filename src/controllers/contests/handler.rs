@@ -1,11 +1,11 @@
 use crate::auth::region::*;
-use crate::database::Pool;
-use server_core::errors::ServiceError;
 use crate::models::contests::*;
 use crate::models::users::LoggedUser;
 use crate::services::contest;
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use chrono::*;
+use server_core::database::Pool;
+use server_core::errors::ServiceError;
 
 #[derive(Deserialize)]
 pub struct CreateContestBody {

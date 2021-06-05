@@ -39,32 +39,28 @@ pub struct LinkedProblemColumn {
     pub error_times: i32,
 }
 
-use crate::database::*;
 use crate::models::statistics::get_results;
+use server_core::database::*;
 pub fn get_column_from_raw(
     conn: &PooledConnection,
     raw: RawLinkedProblemColumn,
 ) -> ServiceResult<LinkedProblemColumn> {
     let statistic = get_results(conn, raw.region.clone(), raw.problem_id)?;
 
-    Ok(
-        LinkedProblemColumn {
-            region: raw.region,
-            inner_id: raw.inner_id,
-            out_problem: problems::OutProblem {
-                id: raw.problem_id,
-                info: problems::ProblemInfo {
-                    title: raw.problem_title,
-                    tags: raw.problem_tags,
-                    difficulty: raw.problem_difficulty,
-                },
-                is_released: raw.is_released,
+    Ok(LinkedProblemColumn {
+        region: raw.region,
+        inner_id: raw.inner_id,
+        out_problem: problems::OutProblem {
+            id: raw.problem_id,
+            info: problems::ProblemInfo {
+                title: raw.problem_title,
+                tags: raw.problem_tags,
+                difficulty: raw.problem_difficulty,
             },
-            submit_times: statistic.submit_times,
-            accept_times: statistic.accept_times,
-            error_times: statistic.error_times,
-        }
-    )
+            is_released: raw.is_released,
+        },
+        submit_times: statistic.submit_times,
+        accept_times: statistic.accept_times,
+        error_times: statistic.error_times,
+    })
 }
-
-

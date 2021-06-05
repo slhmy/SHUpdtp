@@ -1,5 +1,5 @@
-use server_core::errors::ServiceResult;
 use diesel::prelude::*;
+use server_core::errors::ServiceResult;
 
 pub fn get_self_type(region: String, db_connection: &PgConnection) -> ServiceResult<String> {
     use crate::schema::regions as regions_schema;

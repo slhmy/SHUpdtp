@@ -1,5 +1,5 @@
-use server_core::errors::{ServiceError, ServiceResult};
 use crate::models::contests::*;
+use server_core::errors::{ServiceError, ServiceResult};
 
 pub fn check_settings_legal(settings: ContestSettings) -> ServiceResult<()> {
     if !settings.view_after_end && settings.public_after_end {

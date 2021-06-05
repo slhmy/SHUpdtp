@@ -1,9 +1,6 @@
 pub mod utils;
 
-use server_core::utils::encryption;
 use crate::auth::region as region_access;
-use crate::database::{db_connection, Pool};
-use server_core::errors::{ServiceError, ServiceResult};
 use crate::models::access_control_list::*;
 use crate::models::contests::*;
 use crate::models::ranks::*;
@@ -12,10 +9,13 @@ use crate::models::regions::*;
 use crate::models::utils::SizedList;
 use crate::services::rank::utils::update_acm_rank_cache;
 use crate::statics::ACM_RANK_CACHE;
-use server_core::utils::time::get_cur_naive_date_time;
 use actix_web::web;
 use chrono::*;
 use diesel::prelude::*;
+use server_core::database::{db_connection, Pool};
+use server_core::errors::{ServiceError, ServiceResult};
+use server_core::utils::encryption;
+use server_core::utils::time::get_cur_naive_date_time;
 
 pub fn create(
     region: String,

@@ -9,7 +9,7 @@ pub mod region_access_settings;
 pub mod region_links;
 pub mod regions;
 pub mod samples;
+pub mod statistics;
 pub mod submissions;
 pub mod users;
 pub mod utils;
-pub mod statistics;

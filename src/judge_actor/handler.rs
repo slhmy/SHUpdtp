@@ -6,10 +6,10 @@ use crate::services::rank::utils::update_acm_rank_cache;
 use crate::services::region::utils::get_self_type;
 use crate::statics::JUDGE_SERVER_INFOS;
 use crate::statics::WAITING_QUEUE;
-use server_core::utils::time::get_cur_naive_date_time;
 use actix::prelude::*;
 use diesel::prelude::*;
-use crate::database::db_connection;
+use server_core::database::db_connection;
+use server_core::utils::time::get_cur_naive_date_time;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct StartJudge();
@@ -26,7 +26,9 @@ impl Handler<StartJudge> for JudgeActor {
 
         let conn = match db_connection(&self.pool) {
             Ok(conn) => conn,
-            Err(_) => { return; }
+            Err(_) => {
+                return;
+            }
         };
 
         let mut queue_size = {
@@ -176,15 +178,12 @@ impl Handler<StartJudge> for JudgeActor {
                     },
                 );
 
-                match common_region::update_results(
-                    &conn,
-                    submission.clone(),
-                ) {
-                    Ok(_) => {},
+                match common_region::update_results(&conn, submission.clone()) {
+                    Ok(_) => {}
                     Err(_) => {
                         log::error!("Error updating results type.");
                         return;
-                    } 
+                    }
                 };
 
                 if let Some(region) = submission.region.clone() {
@@ -196,11 +195,7 @@ impl Handler<StartJudge> for JudgeActor {
                         }
                     } == "contest"
                     {
-                        match update_acm_rank_cache(
-                            submission.region.unwrap(),
-                            &conn,
-                            false,
-                        ) {
+                        match update_acm_rank_cache(submission.region.unwrap(), &conn, false) {
                             Ok(_) => (),
                             Err(_) => {
                                 log::error!("Error updating acm rank cache.");
