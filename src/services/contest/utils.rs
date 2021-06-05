@@ -1,4 +1,4 @@
-use crate::errors::{ServiceError, ServiceResult};
+use server_core::errors::{ServiceError, ServiceResult};
 use crate::models::contests::*;
 
 pub fn check_settings_legal(settings: ContestSettings) -> ServiceResult<()> {

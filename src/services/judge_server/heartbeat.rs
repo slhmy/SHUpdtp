@@ -1,4 +1,4 @@
-use crate::errors::ServiceResult;
+use server_core::errors::ServiceResult;
 use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
 use crate::models::judge_servers::JudgeServerInfo;
 use crate::statics::JUDGE_SERVER_INFOS;

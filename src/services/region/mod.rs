@@ -1,7 +1,7 @@
 pub mod utils;
 
 use crate::database::{db_connection, Pool};
-use crate::errors::{ServiceError, ServiceResult};
+use server_core::errors::{ServiceError, ServiceResult};
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::problems::*;
 use crate::models::region_links::*;

@@ -1,4 +1,4 @@
-use crate::errors::ServiceResult;
+use server_core::errors::ServiceResult;
 use diesel::prelude::*;
 
 pub fn get_self_type(region: String, db_connection: &PgConnection) -> ServiceResult<String> {

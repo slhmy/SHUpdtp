@@ -1,5 +1,5 @@
 use crate::database::{db_connection, Pool};
-use crate::errors::ServiceResult;
+use server_core::errors::ServiceResult;
 
 use crate::models::problem_sets::*;
 

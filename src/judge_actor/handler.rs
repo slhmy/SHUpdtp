@@ -6,7 +6,7 @@ use crate::services::rank::utils::update_acm_rank_cache;
 use crate::services::region::utils::get_self_type;
 use crate::statics::JUDGE_SERVER_INFOS;
 use crate::statics::WAITING_QUEUE;
-use crate::utils::*;
+use server_core::utils::time::get_cur_naive_date_time;
 use actix::prelude::*;
 use diesel::prelude::*;
 use crate::database::db_connection;

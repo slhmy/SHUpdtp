@@ -1,5 +1,5 @@
 use crate::database::Pool;
-use crate::errors::ServiceError;
+use server_core::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::users::LoggedUser;
 use crate::services::sample;

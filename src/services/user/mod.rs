@@ -1,6 +1,6 @@
 use crate::auth::encryption;
 use crate::database::{db_connection, Pool};
-use crate::errors::{ServiceError, ServiceResult};
+use server_core::errors::{ServiceError, ServiceResult};
 use crate::models::users::*;
 use crate::models::utils::SizedList;
 use actix_web::web;

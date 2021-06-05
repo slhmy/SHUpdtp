@@ -4,7 +4,7 @@ use diesel::prelude::*;
 use crate::statics::RESULT_STATISTICS_CACHE;
 use crate::models::statistics::*;
 use crate::models::submissions::*;
-use crate::errors::*;
+use server_core::errors::*;
 
 pub fn update_results(
     conn: &PooledConnection,

@@ -1,4 +1,4 @@
-use crate::errors::ServiceResult;
+use server_core::errors::ServiceResult;
 use crate::models::judge_servers::OutJudgeServerInfo;
 use crate::statics::JUDGE_SERVER_INFOS;
 use actix_identity::Identity;

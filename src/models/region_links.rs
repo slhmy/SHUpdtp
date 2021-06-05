@@ -1,6 +1,6 @@
 use super::problems;
 use crate::schema::*;
-use crate::errors::ServiceResult;
+use server_core::errors::ServiceResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Insertable, Queryable)]
 #[table_name = "region_links"]

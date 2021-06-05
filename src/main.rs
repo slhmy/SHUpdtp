@@ -11,13 +11,11 @@ mod auth;
 mod cli_args;
 mod controllers;
 mod database;
-mod errors;
 mod judge_actor;
 mod models;
 mod schema;
 mod services;
 mod statics;
-mod utils;
 
 use actix_cors::Cors;
 use actix_identity::{CookieIdentityPolicy, IdentityService};

@@ -1,4 +1,4 @@
-use crate::errors::{ServiceError, ServiceResult};
+use server_core::errors::{ServiceError, ServiceResult};
 use crate::models::problems;
 use digest::Digest;
 use hex::ToHex;

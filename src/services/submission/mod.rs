@@ -1,10 +1,10 @@
 use crate::database::{db_connection, Pool};
-use crate::errors::ServiceResult;
+use server_core::errors::ServiceResult;
 use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
 use crate::models::utils::SizedList;
 use crate::models::*;
 use crate::statics::WAITING_QUEUE;
-use crate::utils::get_cur_naive_date_time;
+use server_core::utils::time::get_cur_naive_date_time;
 use actix_web::web;
 use diesel::prelude::*;
 use std::fs::File;

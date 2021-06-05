@@ -1,6 +1,6 @@
 use crate::auth::region::*;
 use crate::database::Pool;
-use crate::errors::ServiceError;
+use server_core::errors::ServiceError;
 use crate::models::contests::*;
 use crate::models::users::LoggedUser;
 use crate::services::contest;

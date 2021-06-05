@@ -1,5 +1,5 @@
 use crate::database::Pool;
-use crate::errors::ServiceError;
+use server_core::errors::ServiceError;
 use crate::models::users::LoggedUser;
 use crate::services::problem_set;
 use actix_web::{delete, get, post, put, web, HttpResponse};

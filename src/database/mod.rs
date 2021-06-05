@@ -1,4 +1,4 @@
-use crate::errors::ServiceError;
+use server_core::errors::ServiceError;
 
 pub mod pool;
 

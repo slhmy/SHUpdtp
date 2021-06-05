@@ -1,4 +1,4 @@
-use crate::errors::ServiceError;
+use server_core::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::services::judge_server::*;
 use actix_identity::Identity;

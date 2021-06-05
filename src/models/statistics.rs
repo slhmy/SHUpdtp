@@ -1,4 +1,4 @@
-use crate::errors::ServiceResult;
+use server_core::errors::ServiceResult;
 use crate::database::*;
 use crate::statics::RESULT_STATISTICS_CACHE;
 use crate::models::submissions::*;
