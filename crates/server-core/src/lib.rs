@@ -3,7 +3,6 @@ extern crate serde_derive;
 
 pub mod utils;
 pub mod database;
-pub mod encryption;
 pub mod errors;
 pub mod cli_args;
 
