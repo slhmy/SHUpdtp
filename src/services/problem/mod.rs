@@ -1,11 +1,11 @@
 mod utils;
 
-use crate::database::{db_connection, Pool};
-use crate::errors::{ServiceError, ServiceResult};
 use crate::models::problems::*;
 use crate::models::utils::SizedList;
 use actix_web::web;
 use diesel::prelude::*;
+use server_core::database::{db_connection, Pool};
+use server_core::errors::{ServiceError, ServiceResult};
 use std::fs;
 use std::io::prelude::*;
 use std::process::Command;

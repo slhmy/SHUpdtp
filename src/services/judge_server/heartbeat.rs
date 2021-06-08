@@ -1,9 +1,9 @@
-use crate::errors::ServiceResult;
 use crate::judge_actor::{handler::StartJudge, JudgeActorAddr};
 use crate::models::judge_servers::JudgeServerInfo;
 use crate::statics::JUDGE_SERVER_INFOS;
 use actix_web::client::Client;
 use actix_web::web;
+use server_core::errors::ServiceResult;
 use std::time::SystemTime;
 
 pub async fn record_server_info(

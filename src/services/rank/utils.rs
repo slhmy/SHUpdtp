@@ -1,4 +1,3 @@
-use crate::errors::ServiceResult;
 use crate::models::access_control_list::*;
 use crate::models::contests::*;
 use crate::models::ranks::*;
@@ -6,8 +5,9 @@ use crate::models::region_links::*;
 use crate::models::submissions::*;
 use crate::services::region::utils::*;
 use crate::statics::ACM_RANK_CACHE;
-use crate::utils::get_cur_naive_date_time;
 use diesel::prelude::*;
+use server_core::errors::ServiceResult;
+use server_core::utils::time::get_cur_naive_date_time;
 
 pub fn update_acm_rank_cache(
     region: String,

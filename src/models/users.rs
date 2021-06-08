@@ -2,8 +2,8 @@ use crate::schema::*;
 use actix_identity::RequestIdentity;
 use actix_web::dev::Payload;
 use actix_web::{Error, FromRequest, HttpRequest};
-use shrinkwraprs::Shrinkwrap;
 use chrono::NaiveDate;
+use shrinkwraprs::Shrinkwrap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable)]
 pub struct User {

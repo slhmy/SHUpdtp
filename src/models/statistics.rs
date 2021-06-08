@@ -1,8 +1,8 @@
-use crate::errors::ServiceResult;
-use crate::database::*;
-use crate::statics::RESULT_STATISTICS_CACHE;
 use crate::models::submissions::*;
+use crate::statics::RESULT_STATISTICS_CACHE;
 use diesel::prelude::*;
+use server_core::database::*;
+use server_core::errors::ServiceResult;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubmissionStatistics {
@@ -35,7 +35,9 @@ pub fn get_results(
 ) -> ServiceResult<SubmissionStatistics> {
     let has_cache = {
         let result_statistics = RESULT_STATISTICS_CACHE.read().unwrap();
-        result_statistics.get(&(region.clone(), problem_id)).is_some()
+        result_statistics
+            .get(&(region.clone(), problem_id))
+            .is_some()
     };
 
     if !has_cache {
@@ -44,15 +46,14 @@ pub fn get_results(
 
     Ok({
         let result_statistics = RESULT_STATISTICS_CACHE.read().unwrap();
-        result_statistics.get(&(region.clone(), problem_id)).unwrap().to_owned()
+        result_statistics
+            .get(&(region.clone(), problem_id))
+            .unwrap()
+            .to_owned()
     })
 }
 
-fn count_results(
-    conn: &PooledConnection,
-    region: &str,
-    problem_id: i32,
-) -> ServiceResult<()> {
+fn count_results(conn: &PooledConnection, region: &str, problem_id: i32) -> ServiceResult<()> {
     let mut statistics = SubmissionStatistics {
         problem_id,
         region: region.to_owned(),
@@ -92,13 +93,12 @@ fn count_results(
     Ok(())
 }
 
-fn update_submission_statistics(
-    statistics: &mut SubmissionStatistics,
-    submission: Submission,
-) {
+fn update_submission_statistics(statistics: &mut SubmissionStatistics, submission: Submission) {
     if let Some(result) = submission.result {
         if let Some(is_accepted) = result.is_accepted {
-            if is_accepted { statistics.accept_times += 1; }
+            if is_accepted {
+                statistics.accept_times += 1;
+            }
         }
 
         if let Some(_) = result.err {
@@ -107,12 +107,14 @@ fn update_submission_statistics(
 
         if let Some(max_time) = result.max_time {
             let effective_time = statistics.submit_times - statistics.error_times;
-            statistics.avg_max_time = (statistics.avg_max_time * effective_time + max_time) / (effective_time + 1);
+            statistics.avg_max_time =
+                (statistics.avg_max_time * effective_time + max_time) / (effective_time + 1);
         }
 
         if let Some(max_memory) = result.max_memory {
             let effective_time = statistics.submit_times - statistics.error_times;
-            statistics.avg_max_memory = (statistics.avg_max_memory * effective_time + max_memory) / (effective_time + 1);
+            statistics.avg_max_memory =
+                (statistics.avg_max_memory * effective_time + max_memory) / (effective_time + 1);
         }
 
         statistics.submit_times += 1;
@@ -121,15 +123,31 @@ fn update_submission_statistics(
     if let Some(result_set) = submission.out_results {
         for result in result_set {
             match result.as_str() {
-                "WRONG_ANSWER" => { statistics.result_count.wrong_answer += 1; },
-                "SUCCESS" => { statistics.result_count.success += 1; },
-                "CPU_TIME_LIMIT_EXCEEDED" => { statistics.result_count.cpu_time_limit_exceeded += 1; },
-                "REAL_TIME_LIMIT_EXCEEDED" => { statistics.result_count.real_time_limit_exceeded += 1; },
-                "MEMORY_LIMIT_EXCEEDED" => { statistics.result_count.memory_limit_exceeded += 1; },
-                "RUNTIME_ERROR" => { statistics.result_count.runtime_error += 1; },
-                "SYSTEM_ERROR" => { statistics.result_count.system_error += 1; },
-                "UNKNOWN_ERROR" => { statistics.result_count.unknown_error += 1; },
-                _ => {},
+                "WRONG_ANSWER" => {
+                    statistics.result_count.wrong_answer += 1;
+                }
+                "SUCCESS" => {
+                    statistics.result_count.success += 1;
+                }
+                "CPU_TIME_LIMIT_EXCEEDED" => {
+                    statistics.result_count.cpu_time_limit_exceeded += 1;
+                }
+                "REAL_TIME_LIMIT_EXCEEDED" => {
+                    statistics.result_count.real_time_limit_exceeded += 1;
+                }
+                "MEMORY_LIMIT_EXCEEDED" => {
+                    statistics.result_count.memory_limit_exceeded += 1;
+                }
+                "RUNTIME_ERROR" => {
+                    statistics.result_count.runtime_error += 1;
+                }
+                "SYSTEM_ERROR" => {
+                    statistics.result_count.system_error += 1;
+                }
+                "UNKNOWN_ERROR" => {
+                    statistics.result_count.unknown_error += 1;
+                }
+                _ => {}
             }
         }
     }

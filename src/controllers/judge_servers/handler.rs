@@ -1,8 +1,8 @@
-use crate::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::services::judge_server::*;
 use actix_identity::Identity;
 use actix_web::{delete, get, post, put, web, HttpRequest, HttpResponse};
+use server_core::errors::ServiceError;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct HeartbeatBody {

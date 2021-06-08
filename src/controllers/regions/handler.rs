@@ -1,10 +1,10 @@
 use crate::auth::region::*;
-use crate::database::Pool;
-use crate::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::users::LoggedUser;
 use crate::services::region;
 use actix_web::{delete, get, post, put, web, HttpResponse};
+use server_core::database::Pool;
+use server_core::errors::ServiceError;
 
 #[derive(Deserialize)]
 pub struct GetRegionListParams {

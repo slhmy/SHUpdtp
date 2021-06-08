@@ -8,16 +8,12 @@ extern crate diesel;
 extern crate log;
 
 mod auth;
-mod cli_args;
 mod controllers;
-mod database;
-mod errors;
 mod judge_actor;
 mod models;
 mod schema;
 mod services;
 mod statics;
-mod utils;
 
 use actix_cors::Cors;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
@@ -38,10 +34,13 @@ async fn main() -> std::io::Result<()> {
     // Get options
     let opt = {
         use structopt::StructOpt;
-        cli_args::Opt::from_args()
+        server_core::cli_args::Opt::from_args()
     };
 
-    let pool = database::pool::establish_connection(opt.clone());
+    let pool = server_core::database::pool::establish_connection(
+        &opt.database_url,
+        opt.judge_actor_count as u32,
+    );
     let _domain = opt.domain.clone();
     let cookie_secret_key = opt.auth_secret_key.clone();
     let _secure_cookie = opt.secure_cookie;

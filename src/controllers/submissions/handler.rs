@@ -1,9 +1,9 @@
-use crate::database::{db_connection, Pool};
-use crate::errors::ServiceError;
 use crate::judge_actor::JudgeActorAddr;
 use crate::models::users::LoggedUser;
 use crate::services::submission;
 use actix_web::{get, post, put, web, HttpResponse};
+use server_core::database::{db_connection, Pool};
+use server_core::errors::ServiceError;
 use uuid::Uuid;
 
 #[derive(Deserialize)]

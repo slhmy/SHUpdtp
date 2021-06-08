@@ -1,5 +1,5 @@
-use crate::database::{db_connection, Pool};
-use crate::errors::ServiceResult;
+use server_core::database::{db_connection, Pool};
+use server_core::errors::ServiceResult;
 
 use crate::models::problem_sets::*;
 
@@ -126,12 +126,14 @@ pub fn update(
         .execute(conn)?;
 
     use crate::schema::problem_sets as problem_sets_schema;
-    diesel::update(problem_sets_schema::table.filter(problem_sets_schema::region.eq(region.clone())))
-        .set(ProblemSetForm {
-            title: new_title,
-            introduction: new_introduction,
-        })
-        .execute(conn)?;
+    diesel::update(
+        problem_sets_schema::table.filter(problem_sets_schema::region.eq(region.clone())),
+    )
+    .set(ProblemSetForm {
+        title: new_title,
+        introduction: new_introduction,
+    })
+    .execute(conn)?;
 
     Ok(())
 }

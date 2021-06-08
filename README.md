@@ -13,3 +13,7 @@ There is a Matching front-end for [online_judge](https://github.com/slhmy/online
 The biggest topic is to make everything far more simple than [online_judge](https://github.com/slhmy/online_judge).
 Basic functions will be refined, so that additional functions can be built more easily. The file structure will be clearer, no dead codes, zero warning and easy to understand.
 When everything is well done, then it is the release date.
+
+## Crates
+### server-core
+It's a **reuseable crate for actix-web project**, see more in [server-core README](crates/server-core/README.md).

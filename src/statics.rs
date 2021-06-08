@@ -1,4 +1,7 @@
-use crate::models::{judge_servers::JudgeServerInfo, ranks::ACMRank, users::AuthConfig, statistics::SubmissionStatistics};
+use crate::models::{
+    judge_servers::JudgeServerInfo, ranks::ACMRank, statistics::SubmissionStatistics,
+    users::AuthConfig,
+};
 use regex::Regex;
 use std::io::Read;
 use std::{
@@ -9,7 +12,8 @@ use uuid::Uuid;
 
 lazy_static! {
     pub static ref WAITING_QUEUE: RwLock<VecDeque::<Uuid>> = RwLock::new(VecDeque::new());
-    pub static ref RESULT_STATISTICS_CACHE: RwLock<HashMap<(String, i32), SubmissionStatistics>> = RwLock::new(HashMap::new()); 
+    pub static ref RESULT_STATISTICS_CACHE: RwLock<HashMap<(String, i32), SubmissionStatistics>> =
+        RwLock::new(HashMap::new());
     pub static ref ACM_RANK_CACHE: RwLock<HashMap<String, ACMRank>> = RwLock::new(HashMap::new());
     pub static ref JUDGE_SERVER_INFOS: RwLock<HashMap<String, JudgeServerInfo>> =
         RwLock::new(HashMap::new());

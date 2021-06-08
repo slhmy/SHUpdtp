@@ -1,6 +1,6 @@
 use crate::schema::*;
-use crate::utils::get_cur_naive_date_time;
 use chrono::*;
+use server_core::utils::time::get_cur_naive_date_time;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Insertable, Queryable)]
 #[table_name = "contests"]

@@ -1,11 +1,11 @@
-use crate::database::{db_connection, Pool};
-use crate::errors::*;
 use crate::models::region_access_settings::RegionAccessSetting;
 use crate::models::users::LoggedUser;
 use crate::services::region::utils::get_self_type;
-use crate::utils::get_cur_naive_date_time;
 use actix_web::web;
 use diesel::prelude::*;
+use server_core::database::{db_connection, Pool};
+use server_core::errors::*;
+use server_core::utils::time::get_cur_naive_date_time;
 
 pub fn has_access_setting(conn: &PgConnection, region: String) -> ServiceResult<bool> {
     use crate::schema::regions as regions_schema;

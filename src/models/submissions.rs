@@ -1,8 +1,8 @@
 use super::languages::*;
 use crate::schema::submissions;
 use chrono::NaiveDateTime;
-use uuid::Uuid;
 use std::collections::HashSet;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestCase {
@@ -234,7 +234,7 @@ pub struct Submission {
     pub max_memory: Option<i32>,
     pub language: Option<String>,
     pub err: Option<String>,
-    pub out_results: Option<HashSet<String>>
+    pub out_results: Option<HashSet<String>>,
 }
 
 impl From<RawSubmission> for Submission {
@@ -267,8 +267,12 @@ impl From<RawSubmission> for Submission {
                             set.insert(detail.result);
                         }
                         Some(set)
-                    } else { None }
-                } else { None }
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             },
         }
     }
@@ -307,8 +311,12 @@ impl From<RawSubmission> for SlimSubmission {
                             set.insert(detail.result);
                         }
                         Some(set)
-                    } else { None }
-                } else { None }
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             },
             max_time: raw.max_time,
             max_memory: raw.max_memory,
