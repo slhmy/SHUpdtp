@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, server-core, pg-db ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, server-core, pg-db ]
     types: [assigned, opened, synchronize, reopened, updated]
 
 env:
