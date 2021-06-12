@@ -52,3 +52,4 @@ lazy_static = "1.1"
 regex = "1.4"
 
 server-core = { path = "crates/server-core" }
+shupdtp-db = { path = "crates/shupdtp-db" }

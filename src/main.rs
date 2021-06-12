@@ -37,9 +37,9 @@ async fn main() -> std::io::Result<()> {
         server_core::cli_args::Opt::from_args()
     };
 
-    let pool = server_core::database::pool::establish_connection(
+    let pool = server_core::database::pool::establish_connection_with_count(
         &opt.database_url,
-        opt.judge_actor_count as u32,
+        opt.judge_actor_count as u32 + 10,
     );
     let _domain = opt.domain.clone();
     let cookie_secret_key = opt.auth_secret_key.clone();

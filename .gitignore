@@ -1,4 +1,5 @@
 /target
+/crates/shupdtp-db/target
 /data/rsync_master/rsyncd.log
 .env
 *.pem
