@@ -7,9 +7,7 @@ use shupdtp_db::user::models::*;
 fn get_conn() -> ServiceResult<PooledConnection> {
     dotenv::dotenv().ok();
     let database_url: String = dotenv::var("DATABASE_URL").unwrap();
-    let pool = server_core::database::pool::establish_connection_with_count(
-        &database_url, 1
-    );
+    let pool = server_core::database::pool::establish_connection_with_count(&database_url, 1);
     Ok(db_connection(&pool)?)
 }
 

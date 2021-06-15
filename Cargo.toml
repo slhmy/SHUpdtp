@@ -1,3 +1,6 @@
+[workspace]
+members = ["crates/server-core", "crates/shupdtp-db"]
+
 [package]
 name = "shu_pdtp"
 version = "0.1.0"

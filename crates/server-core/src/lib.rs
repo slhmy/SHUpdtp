@@ -1,10 +1,10 @@
 #[macro_use]
 extern crate serde_derive;
 
-pub mod utils;
+pub mod cli_args;
 pub mod database;
 pub mod errors;
-pub mod cli_args;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {

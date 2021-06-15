@@ -1,5 +1,5 @@
-pub mod user;
 mod schema;
+pub mod user;
 
 #[macro_use]
 extern crate diesel;
