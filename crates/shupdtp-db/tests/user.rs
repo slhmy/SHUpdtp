@@ -1,6 +1,8 @@
 use server_core::database::*;
 use server_core::errors::ServiceResult;
+use server_core::utils::encryption;
 use shupdtp_db::user;
+use shupdtp_db::user::models::*;
 
 fn get_conn() -> ServiceResult<PooledConnection> {
     dotenv::dotenv().ok();
@@ -12,7 +14,26 @@ fn get_conn() -> ServiceResult<PooledConnection> {
 }
 
 #[test]
-fn get_by_id() {
+fn single_operations() {
     let conn = get_conn().unwrap();
-    assert!(user::operations::get_by_id(&conn, 1).is_ok());
+
+    let insertable_user = InsertableUser {
+        salt: None,
+        hash: None,
+        account: "somebody".to_string(),
+        mobile: None,
+        role: "super".to_string(),
+    };
+    user::operations::insert(&conn, &insertable_user).unwrap();
+    let user_form = UserForm {
+        salt: None,
+        hash: None,
+        account: None,
+        mobile: None,
+        role: Some("student".to_string()),
+    };
+    user::operations::update_by_account(&conn, "somebody".to_string(), user_form).unwrap();
+    let user = user::operations::get_by_account(&conn, "somebody".to_string()).unwrap();
+    println!("{:?}", user);
+    user::operations::delete_by_id(&conn, user.id).unwrap();
 }
