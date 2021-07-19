@@ -37,7 +37,7 @@ uuid = { version = "0.8", features = ["serde", "v4"] }
 structopt = "0.3"
 dotenv = "0.15"
 log = "0.4"
-env_logger = "0.8"
+env_logger = "0.9"
 argon2rs = "0.2"
 rand = "0.8"
 time = "0.2"
