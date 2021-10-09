@@ -23,7 +23,7 @@ actix-multipart = "0.3"
 actix-http = "2.1"
 
 # ORM and Query Builder
-diesel = { version = "1.4.7", features = ["postgres", "uuidv07", "chrono", "r2d2"] }
+diesel = { version = "1.4.8", features = ["postgres", "uuidv07", "chrono", "r2d2"] }
 
 # Framework for serializing and deserializing
 serde = "1.0"
