@@ -1978,7 +1978,7 @@ dependencies = [
  "base64 0.13.0",
  "chrono",
  "diesel",
- "digest 0.9.0",
+ "digest 0.10.0",
  "dotenv",
  "env_logger",
  "futures",

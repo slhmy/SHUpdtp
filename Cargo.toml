@@ -50,7 +50,7 @@ md-5 = "0.9.1"
 hex = "0.4"
 hmac = "0.12.0"
 base64 = "0.13.0"
-digest = "0.9.0"
+digest = "0.10.0"
 lazy_static = "1.1"
 regex = "1.4"
 
