@@ -118,7 +118,7 @@ dependencies = [
  "serde_urlencoded",
  "sha-1 0.9.8",
  "slab",
- "time 0.2.26",
+ "time 0.2.27",
 ]
 
 [[package]]
@@ -132,7 +132,7 @@ dependencies = [
  "futures-util",
  "serde",
  "serde_json",
- "time 0.2.26",
+ "time 0.2.27",
 ]
 
 [[package]]
@@ -316,7 +316,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "socket2",
- "time 0.2.26",
+ "time 0.2.27",
  "tinyvec",
  "url",
 ]
@@ -705,7 +705,7 @@ dependencies = [
  "percent-encoding",
  "rand 0.7.3",
  "sha2 0.9.8",
- "time 0.2.26",
+ "time 0.2.27",
  "version_check",
 ]
 
@@ -1302,9 +1302,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.101"
+version = "0.2.116"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cb00336871be5ed2c8ed44b60ae9959dc5b9f08539422ed43f09e34ecaeba21"
+checksum = "565dbd88872dbe4cc8a46e527f26483c1d1f7afa6b884a3bd6cd893d4f98da74"
 
 [[package]]
 name = "linked-hash-map"
@@ -1475,6 +1475,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05499f3756671c15885fee9034446956fff3f243d6077b91e5767df161f766b3"
 dependencies = [
  "hermit-abi",
+ "libc",
+]
+
+[[package]]
+name = "num_threads"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97ba99ba6393e2c3734791401b66902d981cb03bf190af674ca69949b6d5fb15"
+dependencies = [
  "libc",
 ]
 
@@ -2015,7 +2024,7 @@ dependencies = [
  "shupdtp-db",
  "structopt",
  "thiserror",
- "time 0.2.26",
+ "time 0.3.7",
  "toml",
  "uuid",
 ]
@@ -2229,9 +2238,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.2.26"
+version = "0.2.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08a8cbfbf47955132d0202d1662f49b2423ae35862aee471f3ba4b133358f372"
+checksum = "4752a97f8eebd6854ff91f1c1824cd6160626ac4bd44287f7f4ea2035a02a242"
 dependencies = [
  "const_fn",
  "libc",
@@ -2240,6 +2249,16 @@ dependencies = [
  "time-macros",
  "version_check",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "time"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "004cbc98f30fa233c61a38bc77e96a9106e65c88f2d3bef182ae952027e5753d"
+dependencies = [
+ "libc",
+ "num_threads",
 ]
 
 [[package]]
