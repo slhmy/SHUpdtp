@@ -16,7 +16,7 @@ actix = "0.10.0"
 # Web framework
 actix-web = "3"
 # Middleware
-actix-identity = "0.3"
+actix-identity = "0.4"
 actix-cors = "0.5"
 # Extension
 actix-multipart = "0.3"
