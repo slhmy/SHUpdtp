@@ -13,7 +13,7 @@ rand = "0.8"
 # ORM and Query Builder
 diesel = { version = "1.4", features = ["postgres", "uuidv07", "chrono", "r2d2"] }
 # Web framework
-actix-web = "3"
+actix-web = "4"
 log = "0.4"
 
 # Framework for serializing and deserializing
